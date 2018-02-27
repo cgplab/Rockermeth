@@ -1,4 +1,4 @@
-#'
+#' @importFrom utils write.table
 write_seg <- function(sample_score, reference_table, outfolder){
   sample_score_molten <- reshape2::melt(sample_score)
   idx <- stringr::str_split((sample_score_molten$Var1), "-", simplify = T)

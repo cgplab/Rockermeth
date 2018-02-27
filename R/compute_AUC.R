@@ -7,8 +7,6 @@
 #' BeadChip from a \bold{tumor} sample
 #' @param control_table A matrix of methylation (beta) values produced by a 450k Illumina
 #' BeadChip from a \bold{control} sample
-#' @param sample_state A logical vector matching columns in beta_table stating
-#' wheather a sample is a tumor (TRUE) or normal (FALSE)
 #' @param nclust Number of clusters to use in parallel
 #' @param NA_thr Fraction of NAs (considered independently in tumor and
 #' control samples) above which a site will not be selected (default=0)
@@ -33,7 +31,8 @@ compute_AUC <- function(tumor_table, control_table, nclust = 1, NA_thr = 0) {
   stopifnot(NA_thr >= 0 || NA_thr < 1)
 
   cl <- parallel::makeCluster(nclust)
-  auc <- parallel::parApply(cl, beta_table, 1, single_AUC, state = sample_state, NA_thr = NA_thr)
+  auc <- parallel::parApply(cl, beta_table, 1, single_AUC, 
+    state = sample_state, NA_thr = NA_thr)
   parallel::stopCluster(cl)
   return(auc)
 }

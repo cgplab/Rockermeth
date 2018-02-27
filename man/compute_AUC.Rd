@@ -17,9 +17,6 @@ BeadChip from a \bold{control} sample}
 
 \item{NA_thr}{Fraction of NAs (considered independently in tumor and
 control samples) above which a site will not be selected (default=0)}
-
-\item{sample_state}{A logical vector matching columns in beta_table stating
-wheather a sample is a tumor (TRUE) or normal (FALSE)}
 }
 \value{
 A vector of AUC scores

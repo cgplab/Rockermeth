@@ -14,8 +14,8 @@ fix_na_states(meth_states, cutoff)
 \description{
 Change NA Methylation States according to flanking sites.
 If a stretch of NAs has flanking sites with the same state,
-the function changes the NAs to the state of the flaking sites. 
-If flanking sites are different, if the stretch of NAs is shorter that cutoff, 
+the function changes the NAs to the state of the flaking sites.
+If flanking sites are different, if the stretch of NAs is shorter that cutoff,
 the function changes the NAs to state of the previous stretch (if first stretch, to the
 state of following strech).
 }

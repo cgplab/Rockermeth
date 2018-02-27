@@ -6,9 +6,10 @@
 #' @param reference_table A data.frame reporting the genomic coordinates of each CpG site
 #' @param out_folder Where to store the data generated. Default to NULL won't save any data
 #'
+#' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
-calc_sample_score <- function(tumor_table, control_table, dmr_table, reference_table,
-                              out_folder = NULL) {
+compute_z_score <- function(tumor_table, control_table, dmr_table,
+                            reference_table, out_folder = NULL) {
   tumor_table <- as.matrix(tumor_table)
   control_table <- as.matrix(control_table)
   beta_table <- as.matrix(cbind(tumor_table, control_table))
@@ -59,6 +60,7 @@ calc_sample_score <- function(tumor_table, control_table, dmr_table, reference_t
 #'
 #' @param x A numeric vector
 #' @param y A numeric vector
+#' @importFrom stats mad median p.adjust sd wilcox.test
 #' @keywords internal
 z_score <- function(x, y){
   (x - median(y, na.rm = T)) / mad(y, na.rm = T)

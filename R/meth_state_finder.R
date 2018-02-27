@@ -13,9 +13,7 @@
 #' @param na_cutoff An integer to set NAs to flanking states depending on their length
 #'
 #' @return An integer vector of methylated states
-#'
 #' @export
-#' @useDynLib MethLibrary
 
 meth_state_finder <- function(input_signal, input_pos, length_cutoff = 5, na_cutoff = 2) {
   stopifnot(is.numeric(input_signal))
@@ -89,10 +87,10 @@ fix_short_segments <- function(meth_states, cutoff) {
 #'
 #' Change NA Methylation States according to flanking sites.
 #' If a stretch of NAs has flanking sites with the same state,
-#' the function changes the NAs to the state of the flaking sites. 
-#' If flanking sites are different, if the stretch of NAs is shorter that cutoff, 
+#' the function changes the NAs to the state of the flaking sites.
+#' If flanking sites are different, if the stretch of NAs is shorter that cutoff,
 #' the function changes the NAs to state of the previous stretch (if first stretch, to the
-#' state of following strech). 
+#' state of following strech).
 #'
 #' @param meth_states An integer vector of methylation states
 #' @param cutoff An integer

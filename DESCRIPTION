@@ -1,6 +1,7 @@
 Package: ROCkerMeth
 Title: Receiver Operating Characteristic curve analyzER of DNA METHylation data
-Version: 0.0.0.9000
+Version: 0.0.0.9001
+Date: 2018-01-27
 Authors@R: c(person("Dario", "Romagnoli", role = "cre", 
     email = "dario.romagnoli87@gmail.com"), 
     person("Matteo", "Benelli", role = "aut"),
@@ -21,4 +22,8 @@ VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 Imports: ROC,
     GenomicFeatures,
-    Gviz
+    Gviz,
+    parallel,
+    S4Vectors,
+    reshape2,
+    stringr

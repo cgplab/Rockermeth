@@ -1,3 +1,4 @@
+#' @importFrom utils write.table
 #' 
 write_bed <- function(segs, outfolder, fdr_thr = 0.05, zero_based = T){
   out_data <- segs[segs$state != 2 & segs$fdr < 0.05, c("chr", "start", "end", "state", "FDR")]

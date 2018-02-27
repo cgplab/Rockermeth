@@ -16,9 +16,10 @@ whole_genome_segmentator(tumor_table, control_table, auc_vector,
 
 \item{reference_table}{A data.frame reporting location of CpG probes (column and genomic_position)}
 
-\item{na_cutoff}{}
+\item{na_cutoff}{An integer to set NAs to flanking states depending on their length}
 
-\item{length_cutoff}{}
+\item{length_cutoff}{An integer to remove streches of methylation that are
+too short}
 }
 \description{
 A function to define DMR for an entire chromosome
