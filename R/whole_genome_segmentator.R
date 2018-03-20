@@ -103,11 +103,12 @@ segmentator <- function(meth_states, tumor_beta_mean, control_beta_mean){
   values <- matrix(nrow = rle_n, ncol = 2, dimnames = list(NULL, c("avg_beta_diff", "pval")))
   for (i in seq_len(rle_n)) {
     values[i, 1] <- mean(beta_diff[rle_start[i]: rle_end[i]], na.rm = T)
-    if (rle_value[i] %in% c(1,3)) {
-      values[i, 2] <- suppressWarnings(
-        wilcox.test(tumor_beta_mean[rle_start[i]: rle_end[i]],
-                    control_beta_mean[rle_start[i]: rle_end[i]],
-                    ifelse(rle_value[i] == 3, "greater", "less"))$p.value)
+    if (!(rle_value[i] == 2 | is.na(rle_value[i]))) {
+      hypothesis <- ifelse(rle_value[i] == 3, "greater", "less")
+      values[i, 2] <- suppressWarnings(tryCatch(wilcox.test(
+            tumor_beta_mean[rle_start[i]:rle_end[i]],
+            control_beta_mean[rle_start[i]:rle_end[i]], hypothesis)$p.value,
+          error = function(e) NA))
     }
   }
   results <- data.frame(nseg = rle_length, state = rle_value, values)
