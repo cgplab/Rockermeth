@@ -2,19 +2,18 @@
 % Please edit documentation in R/compute_AUC.R
 \name{single_AUC}
 \alias{single_AUC}
-\title{Compute AUC for a single vector}
+\title{Compute AUC a single vector}
 \usage{
-single_AUC(x, state, NA_thr)
+single_AUC(x, state, na_threshold)
 }
 \arguments{
 \item{x}{integer vector (range 1-100)}
 
 \item{state}{logical vector}
 
-\item{NA_thr}{numeric value: if fraction of NAs is higher than threshold,
-either in tumor or control samples, return NA}
+\item{na_threshold}{numeric}
 }
 \description{
-Compute AUC returning NA if NA samples are more than threshold
+Return NA if NA samples are more than threshold
 }
 \keyword{internal}

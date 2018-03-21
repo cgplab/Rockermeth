@@ -12,6 +12,6 @@ z_score(x, y)
 \item{y}{A numeric vector}
 }
 \description{
-Z-score
+Compute a Z-score like value
 }
 \keyword{internal}

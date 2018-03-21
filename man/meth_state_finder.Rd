@@ -4,25 +4,27 @@
 \alias{meth_state_finder}
 \title{Mixture Coefficient Estimation}
 \usage{
-meth_state_finder(input_signal, input_pos, length_cutoff = 5, na_cutoff = 2)
+meth_state_finder(input_signal, input_pos, length_cutoff, na_cutoff)
 }
 \arguments{
 \item{input_signal}{A numeric vector of AUC scores}
 
-\item{input_pos}{An integer vector of chromosomal location}
+\item{input_pos}{An integer vector of chromosomal locations}
 
-\item{length_cutoff}{An integer to remove streches of methylation that are
-too short}
+\item{length_cutoff}{An integer to remove streches of differential
+methylation shorter than cutoff}
 
-\item{na_cutoff}{An integer to set NAs to flanking states depending on their length}
+\item{na_cutoff}{An integer to set stretches of NAs to the state of flanking sites
+depending if the stretches are shorter than cutoff}
 }
 \value{
 An integer vector of methylated states
 }
 \description{
-This function determines if a CpG site is differentially methylated using Hidden Markov Models.
+This function determines if a CpG site is differentially methylated using
+Hidden Markov Models.
 States:
-hypo-methylated = 1;
+hypo-methylated  = 1;
 non-differential = 2;
 hyper-methylated = 3.
 }

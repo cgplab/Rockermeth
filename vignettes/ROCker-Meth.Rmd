@@ -1,0 +1,25 @@
+---
+title: "ROCker-Meth"
+author: "Matteo Benelli, Dario Romagnoli"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+ROCker-Meth (Receiver Operating Characteristic curve analyzER of DNA Methylation
+data) tool consists of four main modules:
+
+1. computation of Area Under the Curve (AUC) values from Receiver operating
+characteristic (ROC) Curve analysis of methylation levels (i.e., beta values) in
+tumor versus normal samples; 
+
+2. segmentation of AUC values by a tailored Heterogeneous Shifting Level Model
+(HSLM);
+
+3. estimation of the statistical significance of AUC segments by
+Wilcoxon-Mann-Whitney (WMW) test on beta values of tumor versus normal samples;
+
+4. identification of sample specific DMRs by Z-score statistics.

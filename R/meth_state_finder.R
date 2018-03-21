@@ -62,7 +62,7 @@ meth_state_finder <- function(input_signal, input_pos, length_cutoff, na_cutoff)
     as.matrix(psi))
   meth_states <- out2[[6]]
 
-  # fix output: "undifferentiate" short segments, restore NAs, correct NAs
+  # fix output: "undifferentiate" short segments, reinsert NAs, correct NAs
   final_states[idx_not_na] <- fix_short_segments(meth_states, cutoff = length_cutoff)
   final_states <- fix_na_segments(final_states, cutoff = na_cutoff)
   return(final_states)

@@ -1,8 +1,6 @@
 #' Find Differentially Methylated Regions across whole genome
 #'
 #' A function to define DMR for an entire genome
-#' 
-#' 
 #'
 #' @param tumor_table A matrix of beta values
 #' @param control_table A matrix of beta values
@@ -17,7 +15,7 @@
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
 whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
-  reference_table, na_cutoff = 5, length_cutoff = 5){
+  reference_table, length_cutoff = 5, na_cutoff = 0){
   tumor_table <- as.matrix(tumor_table)
   control_table <- as.matrix(control_table)
   stopifnot(is.numeric(auc_vector))
@@ -37,7 +35,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
     storage.mode(control_table) <- "integer"
     storage.mode(tumor_table) <- "integer"
   } else {
-    stop("tumor_table and control_table must contain decimal values")
+    stop("tumor_table and control_table must have fraction values")
   }
   idx <- order(reference_table[[1]], reference_table[[2]])
   reference_table <- reference_table[idx, ]
