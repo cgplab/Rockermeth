@@ -9,13 +9,11 @@
 #' and genomic_position)
 #' @param length_cutoff An integer to remove streches of differential
 #' methylation shorter than cutoff
-#' @param na_cutoff An integer to set stretches of NAs to the state of flanking sites
-#' depending if the stretches are shorter than cutoff
 #'
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
 whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
-  reference_table, length_cutoff = 5, na_cutoff = 0){
+  reference_table, length_cutoff = 5){
   # check parameters
   tumor_table <- as.matrix(tumor_table)
   control_table <- as.matrix(control_table)
@@ -26,10 +24,10 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
     stop(paste0("tumor_table and control_table must have same number",
         "of rows as reference_table"))
   }
-  tumor_is_fraction <- all(tumor_table >= 0, na.rm = T) &&
-    all(tumor_table <= 1, na.rm = T)
-  control_is_fraction <- all(control_table >= 0, na.rm = T) &&
-    all(control_table <= 1, na.rm = T)
+  tumor_is_fraction <- all(tumor_table >= 0, na.rm = TRUE) &&
+    all(tumor_table <= 1, na.rm = TRUE)
+  control_is_fraction <- all(control_table >= 0, na.rm = TRUE) &&
+    all(control_table <= 1, na.rm = TRUE)
   if (tumor_is_fraction && control_is_fraction) {
     tumor_table <- tumor_table*100
     control_table <- control_table*100
@@ -39,16 +37,23 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
     stop("tumor_table and control_table must have fraction values")
   }
 
+  # remove NA rows
+  idx_not_NA <- which(!is.na(auc_vector))
+  tumor_table <- tumor_table[idx_not_NA,,drop = FALSE]
+  control_table <- control_table[idx_not_NA,,drop = FALSE]
+  auc_vector <- auc_vector[idx_not_NA]
+  reference_table <- reference_table[idx_not_NA,,drop = FALSE]
+
   # sort data
   idx <- order(reference_table[[1]], reference_table[[2]])
   reference_table <- reference_table[idx, ]
   tumor_table <- tumor_table[idx, ]
   control_table <- control_table[idx, ]
 
-  tumor_beta_mean <- apply(tumor_table, 1, mean, na.rm = T)
-  control_beta_mean <- apply(control_table, 1, mean, na.rm = T)
-  auc_sd <- sd(auc_vector, na.rm=T)
-  pt_start <- sum(auc_vector < 0.1 | auc_vector > 0.9, na.rm=T)/sum(!is.na(auc_vector))
+  tumor_beta_mean <- apply(tumor_table, 1, mean, na.rm = TRUE)
+  control_beta_mean <- apply(control_table, 1, mean, na.rm = TRUE)
+  auc_sd <- sd(auc_vector, na.rm=TRUE)
+  pt_start <- 0.05
 
   chromosomes <- unique(reference_table[[1]])
   all_chr_segs <- do.call("rbind", lapply(chromosomes, function(chr) {
@@ -56,7 +61,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
 
     # 1) compute methylation states (1,2,3)
     meth_states <- meth_state_finder(auc_vector[idx_chr],
-      reference_table[[2]][idx_chr], auc_sd, pt_start, length_cutoff, na_cutoff)
+      reference_table[[2]][idx_chr], auc_sd, pt_start, length_cutoff)
 
     # 2) find segments for each chromosome
     single_chr_segs <- segmentator(meth_states, tumor_beta_mean[idx_chr],
@@ -105,7 +110,7 @@ segmentator <- function(meth_states, tumor_beta_mean, control_beta_mean){
 
   values <- matrix(nrow = rle_n, ncol = 2, dimnames = list(NULL, c("avg_beta_diff", "p_value")))
   for (i in seq_len(rle_n)) {
-    values[i, 1] <- mean(beta_diff[rle_start[i]: rle_end[i]], na.rm = T)
+    values[i, 1] <- mean(beta_diff[rle_start[i]: rle_end[i]], na.rm = TRUE)
     if (!(rle_value[i] == 2 | is.na(rle_value[i]))) {
       hypothesis <- ifelse(rle_value[i] == 3, "greater", "less")
       values[i, 2] <- suppressWarnings(tryCatch(wilcox.test(

@@ -15,11 +15,10 @@
 write_bed <- function(dmr_table, path, qvalue_thr = 0.05, one_based = TRUE){
   stopifnot(is.data.frame(dmr_table))
   qvalue_thr <- as.double(qvalue_thr)
-  zero_based <- as.logical(zero_based)
+  one_based <- as.logical(one_based)
 
   row_idx <- which(with(dmr_table, state != 2 & q_value < qvalue_thr))
   out_data <- dmr_table[row_idx, c("chr", "start", "end", "nseg", "avg_beta_diff", "q_value")]
-  out_data$q_value <- -log10(q_value)
   if (!one_based){
     out_data$start <- out_data$start - 1
     out_data$end <- out_data$end - 1

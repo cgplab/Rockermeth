@@ -5,7 +5,7 @@
 \title{Find Differentially Methylated Regions across whole genome}
 \usage{
 whole_genome_segmentator(tumor_table, control_table, auc_vector,
-  reference_table, length_cutoff = 5, na_cutoff = 0)
+  reference_table, length_cutoff = 5)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values from tumor samples.}
@@ -19,9 +19,6 @@ and genomic_position)}
 
 \item{length_cutoff}{An integer to remove streches of differential
 methylation shorter than cutoff}
-
-\item{na_cutoff}{An integer to set stretches of NAs to the state of flanking sites
-depending if the stretches are shorter than cutoff}
 }
 \description{
 A function to define DMR for an entire genome

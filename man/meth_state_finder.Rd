@@ -4,8 +4,7 @@
 \alias{meth_state_finder}
 \title{Mixture Coefficient Estimation}
 \usage{
-meth_state_finder(input_signal, input_pos, auc_sd, PT_start, length_cutoff,
-  na_cutoff)
+meth_state_finder(input_signal, input_pos, auc_sd, PT_start, length_cutoff)
 }
 \arguments{
 \item{input_signal}{A numeric vector of AUC scores}
@@ -18,9 +17,6 @@ meth_state_finder(input_signal, input_pos, auc_sd, PT_start, length_cutoff,
 
 \item{length_cutoff}{An integer to remove streches of differential
 methylation shorter than cutoff}
-
-\item{na_cutoff}{An integer to set stretches of NAs to the state of flanking sites
-depending if the stretches are shorter than cutoff}
 }
 \value{
 An integer vector of methylated states

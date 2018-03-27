@@ -13,17 +13,15 @@
 #' @param PT_start Fraction of AUC signal lower than 0.1 or greater than 0.9
 #' @param length_cutoff An integer to remove streches of differential
 #' methylation shorter than cutoff
-#' @param na_cutoff An integer to set stretches of NAs to the state of flanking sites
-#' depending if the stretches are shorter than cutoff
 #' @return An integer vector of methylated states
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, PT_start,
-  length_cutoff, na_cutoff) {
+  length_cutoff) {
   # check parameters
+  stopifnot(all(!is.na(input_signal)))
   stopifnot(is.numeric(input_signal))
   input_pos <- as.integer(input_pos)
   length_cutoff <- as.integer(length_cutoff)
-  na_cutoff <- as.integer(na_cutoff)
 
   # omit NAs
   final_states <- rep(NA, length(input_signal))
@@ -65,8 +63,7 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, PT_start,
   meth_states <- out2[[6]]
 
   # fix output: "undifferentiate" short segments, reinsert NAs, correct NAs
-  final_states[idx_not_na] <- fix_short_segments(meth_states, cutoff = length_cutoff)
-  final_states <- fix_na_segments(final_states, cutoff = na_cutoff)
+  final_states <- fix_short_segments(meth_states, cutoff = length_cutoff)
   return(final_states)
 }
 
@@ -88,33 +85,6 @@ fix_short_segments <- function(meth_states, cutoff) {
   idx <- which(rle_length <= cutoff & rle_value != 2)
   for (i in idx) {
     meth_states[starts[i]:ends[i]] <- 2
-  }
-  return(meth_states)
-}
-
-#' Fix NAs Methylation States
-#'
-#' Given a vector of methylation states, this function sets NA stretches
-#' shorter than ore equal to cutoff to the state of flanking sites if flanking
-#' sites have the same state.
-#'
-#' @inheritParams fix_short_segments
-#' @keywords internal
-fix_na_segments <- function(meth_states, cutoff) {
-  rle_states <- S4Vectors::Rle(meth_states)
-  rle_length <- S4Vectors::runLength(rle_states)
-  rle_value <- S4Vectors::runValue(rle_states)
-  starts <- S4Vectors::start(rle_states)
-  ends <- S4Vectors::end(rle_states)
-  N <- S4Vectors::nrun(rle_states)
-
-  idx_na <- is.na(rle_value)
-  idx_short <- rle_length <= cutoff
-  idx_same_flanks <- c(F, rle_value[1:(N-2)] == rle_value[3:N], F)
-  idx <- which(idx_na & idx_short & idx_same_flanks)
-  # set NA state to state of previous stretch (equal to state of the following one)
-  for (i in idx){
-    meth_states[starts[i]:ends[i]] <- rle_value[i - 1]
   }
   return(meth_states)
 }
