@@ -29,8 +29,8 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   control_is_fraction <- all(control_table >= 0, na.rm = TRUE) &&
     all(control_table <= 1, na.rm = TRUE)
   if (tumor_is_fraction && control_is_fraction) {
-    tumor_table <- tumor_table*100
-    control_table <- control_table*100
+    tumor_table <- round(tumor_table*100)
+    control_table <- round(control_table*100)
     storage.mode(control_table) <- "integer"
     storage.mode(tumor_table) <- "integer"
   } else {
@@ -78,7 +78,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
       end = reference_table[[2]][idx_chr[rle_end]],
       single_chr_segs))
   }))
-  all_chr_segs$q_value <- p.adjust(all_chr_segs$p_value, "fdr") # fdr (or BH)
+  all_chr_segs$q_value <- p.adjust(all_chr_segs$p_value, "fdr")
   return(all_chr_segs)
 }
 
