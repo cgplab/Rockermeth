@@ -9,31 +9,32 @@
 #'
 #' @param input_signal A numeric vector of AUC scores
 #' @param input_pos An integer vector of chromosomal locations
+#' @param auc_sd Standard deviation of AUC signal
+#' @param PT_start Fraction of AUC signal lower than 0.1 or greater than 0.9
 #' @param length_cutoff An integer to remove streches of differential
 #' methylation shorter than cutoff
 #' @param na_cutoff An integer to set stretches of NAs to the state of flanking sites
 #' depending if the stretches are shorter than cutoff
-#'
 #' @return An integer vector of methylated states
 #' @export
-
-meth_state_finder <- function(input_signal, input_pos, length_cutoff, na_cutoff) {
+meth_state_finder <- function(input_signal, input_pos, auc_sd, PT_start,
+  length_cutoff, na_cutoff) {
+  # check parameters
   stopifnot(is.numeric(input_signal))
   input_pos <- as.integer(input_pos)
   length_cutoff <- as.integer(length_cutoff)
   na_cutoff <- as.integer(na_cutoff)
 
+  # omit NAs
   final_states <- rep(NA, length(input_signal))
   idx_not_na <- which(!is.na(input_signal))
   input_signal <- input_signal[idx_not_na]
 
   muk <- c(0.25, 0.5, 0.75)
-  NormDist <- 1e+05
-  PTStart <- 0.05
+  NormDist <- 1e5
   ratioSD <- 0.4
-  SDtot <- sd(input_signal)
-  sepsilon <- rep(SDtot * ratioSD, length(muk))
-  sepsilon[which(muk == 0.5)] <- SDtot * (1 - ratioSD)
+  sepsilon <- rep(auc_sd * ratioSD, length(muk))
+  sepsilon[which(muk == 0.5)] <- auc_sd * (1 - ratioSD)
 
   KS <- length(muk)
   CovPos <- diff(input_pos)
@@ -41,7 +42,8 @@ meth_state_finder <- function(input_signal, input_pos, length_cutoff, na_cutoff)
   CovDist1 <- log(1 - exp(-CovDist))
   W <- length(input_signal)
   NCov <- length(CovDist)
-  PT <- log(rep(PTStart, KS))
+  PT <- log(rep(PT_start, KS))
+
   P <- matrix(data = 0, nrow = KS, ncol = (KS * NCov))
   emission <- matrix(data = 0, nrow = KS, ncol = W)
 
@@ -70,9 +72,9 @@ meth_state_finder <- function(input_signal, input_pos, length_cutoff, na_cutoff)
 
 #' Fix Short Methylation States
 #'
-#' Given a vector of methylation states, this function sets to non-differential
-#' (2) any hyper-(3) or hypo-(1) methylated stretches of sites shorter than
-#' or equal to cutoff.
+#' Given a vector of methylation states, this function sets any hyper-(3) or
+#' hypo-(1) methylated stretches of sites shorter than or equal to cutoff, to
+#' non-differential state (2).
 #'
 #' @param meth_states An integer vector of methylation states
 #' @param cutoff Length cutoff: longer segments will be ignored

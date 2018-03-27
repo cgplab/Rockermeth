@@ -7,11 +7,9 @@
 compute_AUC(tumor_table, control_table, nclust = 1, na_threshold = 0)
 }
 \arguments{
-\item{tumor_table}{A matrix of methylation (beta) values produced by a 450k
-Illumina BeadChip from a \bold{tumor} sample}
+\item{tumor_table}{A matrix of beta-values from tumor samples.}
 
-\item{control_table}{A matrix of methylation (beta) values produced by a
-450k Illumina BeadChip from a \bold{control} sample}
+\item{control_table}{A matrix of beta-values from normal/control samples.}
 
 \item{nclust}{Number of clusters to use for parallel computing}
 

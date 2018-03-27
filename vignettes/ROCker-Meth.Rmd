@@ -9,17 +9,21 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-ROCker-Meth (Receiver Operating Characteristic curve analyzER of DNA Methylation
-data) tool consists of four main modules:
+ROCker-Meth (Receiver Operating Characteristic curve analyzER of DNA
+Methylation data) tool consists of four main modules:
 
 1. computation of Area Under the Curve (AUC) values from Receiver operating
-characteristic (ROC) Curve analysis of methylation levels (i.e., beta values) in
-tumor versus normal samples; 
+   characteristic (ROC) Curve analysis of methylation levels (i.e., beta
+   values) in tumor versus normal samples (**compute_AUC**)
 
 2. segmentation of AUC values by a tailored Heterogeneous Shifting Level Model
-(HSLM);
+   (HSLM) (**whole_genome_segmentator**);
 
 3. estimation of the statistical significance of AUC segments by
-Wilcoxon-Mann-Whitney (WMW) test on beta values of tumor versus normal samples;
+   Wilcoxon-Mann-Whitney (WMW) test on beta values of tumor versus normal
+   samples
 
-4. identification of sample specific DMRs by Z-score statistics.
+4. identification of sample specific DMRs by Z-score statistics (**compute_z_score**).
+
+The package include also a fuction (**write_bed**) to eaasily produce a bed file
+to visually inspect discovered DMR using a genome browser.

@@ -4,10 +4,8 @@
 #' segregation between tumor and control samples accordingly to their
 #' methylation (beta) values.
 #'
-#' @param tumor_table A matrix of methylation (beta) values produced by a 450k
-#' Illumina BeadChip from a \bold{tumor} sample
-#' @param control_table A matrix of methylation (beta) values produced by a
-#' 450k Illumina BeadChip from a \bold{control} sample
+#' @param tumor_table A matrix of beta-values from tumor samples.
+#' @param control_table A matrix of beta-values from normal/control samples.
 #' @param nclust Number of clusters to use for parallel computing
 #' @param na_threshold Fraction of NAs (considered independently in tumor and
 #' control samples) above which a site will not be selected (default=0)
@@ -17,7 +15,7 @@ compute_AUC <- function(tumor_table, control_table, nclust = 1, na_threshold = 0
   nclust <- as.integer(nclust)
   max_cores <- parallel::detectCores()
   if (nclust > max_cores){
-    stop(sprintf("Selected %i cores but system has %i cores.", 
+    stop(sprintf("Selected %i cores but system has %i cores.",
         nclust, max_cores))
   }
 
@@ -35,7 +33,7 @@ compute_AUC <- function(tumor_table, control_table, nclust = 1, na_threshold = 0
   stopifnot(na_threshold >= 0 || na_threshold < 1)
 
   cl <- parallel::makeCluster(nclust)
-  auc <- parallel::parApply(cl, beta_table, 1, single_AUC, 
+  auc <- parallel::parApply(cl, beta_table, 1, single_AUC,
     state = sample_state, na_threshold = na_threshold)
   parallel::stopCluster(cl)
   return(auc)
@@ -47,12 +45,12 @@ compute_AUC <- function(tumor_table, control_table, nclust = 1, na_threshold = 0
 #'
 #' @param x integer vector (range 1-100)
 #' @param state logical vector
-#' @param na_threshold numeric 
+#' @param na_threshold numeric
 #' @keywords internal
 single_AUC <- function(x, state, na_threshold) {
-  all_NAs <- all(is.na(x)) 
-  t_NA_frac <- sum(is.na(x[state])) / length(x[state]) > na_threshold 
-  c_NA_frac <- sum(is.na(x[!state])) / length(x[!state]) > na_threshold 
+  all_NAs <- all(is.na(x))
+  t_NA_frac <- sum(is.na(x[state])) / length(x[state]) > na_threshold
+  c_NA_frac <- sum(is.na(x[!state])) / length(x[!state]) > na_threshold
   if (all_NAs || t_NA_frac || c_NA_frac) {
     ans <- NA
   } else {

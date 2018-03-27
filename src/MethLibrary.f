@@ -68,7 +68,7 @@
            DO 710 J=1,KS
                DO 720 K=1,KS
                    IF (J.EQ.K) THEN
-                   P(J,(K+COUNTP))=ELNSUB(0.0d+0,(PT(K)+COV(I)))
+                   P(J,(K+COUNTP))=ELNSUB(0.,(PT(K)+COV(I)))
                    ELSE
                    P(J,(K+COUNTP))=PT(K)+COV(I)
                    ENDIF

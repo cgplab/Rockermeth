@@ -12,8 +12,8 @@ fix_short_segments(meth_states, cutoff)
 \item{cutoff}{Length cutoff: longer segments will be ignored}
 }
 \description{
-Given a vector of methylation states, this function sets to non-differential
-(2) any hyper-(3) or hypo-(1) methylated stretches of sites shorter than
-or equal to cutoff.
+Given a vector of methylation states, this function sets any hyper-(3) or
+hypo-(1) methylated stretches of sites shorter than or equal to cutoff, to
+non-differential state (2).
 }
 \keyword{internal}

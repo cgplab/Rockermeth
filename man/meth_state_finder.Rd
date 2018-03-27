@@ -4,12 +4,17 @@
 \alias{meth_state_finder}
 \title{Mixture Coefficient Estimation}
 \usage{
-meth_state_finder(input_signal, input_pos, length_cutoff, na_cutoff)
+meth_state_finder(input_signal, input_pos, auc_sd, PT_start, length_cutoff,
+  na_cutoff)
 }
 \arguments{
 \item{input_signal}{A numeric vector of AUC scores}
 
 \item{input_pos}{An integer vector of chromosomal locations}
+
+\item{auc_sd}{Standard deviation of AUC signal}
+
+\item{PT_start}{Fraction of AUC signal lower than 0.1 or greater than 0.9}
 
 \item{length_cutoff}{An integer to remove streches of differential
 methylation shorter than cutoff}
