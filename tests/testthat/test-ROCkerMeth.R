@@ -81,8 +81,8 @@ test_that("compute_z_score works", {
 test_that("write_bed works", {
   dmr_table <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
     auc_toy_vector, reference_toy_table)
-  write_bed(dmr_table, "test.bed")
-  expect_true(file.exists("test.bed"))
+  write_bed(dmr_table, "test")
+  expect_true(file.exists("test_hyper.bed"))
   file.remove("test.bed")
 })
 
