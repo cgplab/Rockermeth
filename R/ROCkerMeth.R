@@ -1,6 +1,6 @@
 #' ROCkerMeth
 #'
-#' Receiver Operating Characteristic curve analyzER of DNA METHylation data
+#' Receiver Operating Characteristic curve analyzER of DNA METHylation data.
 #'
 #' @docType package
 #' @name ROCkerMeth
