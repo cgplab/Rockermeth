@@ -4,19 +4,19 @@
 #' segregation between tumor and control samples accordingly to their
 #' methylation (beta) values.
 #'
-#' @param tumor_table A matrix of beta-values from tumor samples.
-#' @param control_table A matrix of beta-values from normal/control samples.
-#' @param nclust Number of clusters to use for parallel computing
+#' @param tumor_table A matrix of beta-values (fraction) from tumor samples.
+#' @param control_table A matrix of beta-values (fraction) from normal/control samples.
+#' @param ncores Number of parallel processes to use for parallel computing
 #' @param na_threshold Fraction of NAs (considered independently in tumor and
 #' control samples) above which a site will not be selected (default=0)
 #' @return A vector of AUC scores
 #' @export
-compute_AUC <- function(tumor_table, control_table, nclust = 1, na_threshold = 0) {
-  nclust <- as.integer(nclust)
+compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0) {
+  ncores <- as.integer(ncores)
   max_cores <- parallel::detectCores()
-  if (nclust > max_cores){
+  if (ncores > max_cores){
     stop(sprintf("Selected %i cores but system has %i cores.",
-        nclust, max_cores))
+                 ncores, max_cores))
   }
 
   beta_table <- as.matrix(cbind(tumor_table, control_table))
