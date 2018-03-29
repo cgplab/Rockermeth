@@ -12,27 +12,26 @@
 #' @return A vector of AUC scores
 #' @export
 compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0) {
+  # check parameters
   ncores <- as.integer(ncores)
-  max_cores <- parallel::detectCores()
-  if (ncores > max_cores){
-    stop(sprintf("Selected %i cores but system has %i cores.",
-                 ncores, max_cores))
-  }
-
-  beta_table <- as.matrix(cbind(tumor_table, control_table))
-  sample_state <- c(rep(T, ncol(tumor_table)), rep(F, ncol(control_table)))
-  if (all(beta_table >= 0, na.rm = T) && all(beta_table <= 1, na.rm = T) &&
-    is.double(beta_table[1,1])) {
-    beta_table <- beta_table*100
-    storage.mode(beta_table) <- "integer"
-  } else {
-    stop("tumor_table and control_table must have fraction values")
-  }
+  system_cores <- parallel::detectCores()
+  assertthat::assert_that(ncores < system_cores)
 
   na_threshold <- as.numeric(na_threshold)
-  stopifnot(na_threshold >= 0 || na_threshold < 1)
+  assertthat::assert_that(na_threshold >= 0 || na_threshold < 1)
 
-  cl <- parallel::makeCluster(nclust)
+  beta_table <- as.matrix(cbind(tumor_table, control_table))
+  diff_range <- diff(range(beta_table, na.rm = TRUE))
+  if (diff_range <= 1 || diff_range > 100) {
+    stop(paste0("For computation efficiency please convert tumor and control",
+        "tables to percentage value."))
+  } else {
+    beta_table <- round(beta_table)
+    storage.mode(beta_table) <- "integer"
+  }
+  sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
+
+  cl <- parallel::makeCluster(ncores)
   auc <- parallel::parApply(cl, beta_table, 1, single_AUC,
     state = sample_state, na_threshold = na_threshold)
   parallel::stopCluster(cl)
@@ -48,15 +47,15 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 #' @param na_threshold numeric
 #' @keywords internal
 single_AUC <- function(x, state, na_threshold) {
-  all_NAs <- all(is.na(x))
-  t_NA_frac <- sum(is.na(x[state])) / length(x[state]) > na_threshold
-  c_NA_frac <- sum(is.na(x[!state])) / length(x[!state]) > na_threshold
-  if (all_NAs || t_NA_frac || c_NA_frac) {
-    ans <- NA
+  assertthat::assert_that(is.integer(x))
+  all_NA <- all(is.na(x))
+  tumor_NA <- sum(is.na(x[state])) / length(x[state]) > na_threshold
+  control_NA <- sum(is.na(x[!state])) / length(x[!state]) > na_threshold
+  if (all_NA || tumor_NA || control_NA ) {
+    return(NA)
   } else {
-    roc <- ROC::rocdemo.sca(data = x[!is.na(x)], truth = state[!is.na(x)],
+    roc <- ROC::rocdemo.sca(state[!is.na(x)], x[!is.na(x)],
       cutpts = seq(0, 100, 1))
-    ans <- ROC::AUC(roc)
+    return(ROC::AUC(roc))
   }
-  return(ans)
 }

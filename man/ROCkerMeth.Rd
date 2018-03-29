@@ -6,5 +6,5 @@
 \alias{ROCkerMeth-package}
 \title{ROCkerMeth}
 \description{
-Receiver Operating Characteristic curve analyzER of DNA METHylation data
+Receiver Operating Characteristic curve analyzER of DNA METHylation data.
 }

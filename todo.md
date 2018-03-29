@@ -1,8 +1,6 @@
 ### ROCkerMeth
-- [ ] test with microbench
 - [ ] fix fortran double warning
-- [ ] polish meth_state_finder
-- [x] add write_bed
-- [ ] add write_seg
-- [ ] change q_value to -log10(q_value)
-- [ ] change whole_genome_seg to use loop instead of lapply
+- [x] change whole_genome_seg to use loop instead of lapply
+- [x] merge write bed and write seg: bed files for dmr coordinates (and
+  q-value); seg file  with avg beta (single samples and tumor type) no report
+  methylation state: self-evident by avg_beta

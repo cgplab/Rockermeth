@@ -10,47 +10,56 @@
 compute_z_score <- function(tumor_table, control_table, dmr_table,
   reference_table) {
   # check parameters
-  tumor_table <- as.matrix(tumor_table)
-  control_table <- as.matrix(control_table)
   beta_table <- as.matrix(cbind(tumor_table, control_table))
-  if (nrow(tumor_table) != nrow(reference_table) || nrow(control_table) != nrow(reference_table)){
-    stop("tumor_table and control_table must have same number of rows as reference_table")
-  }
-  tumor_is_fraction <- all(tumor_table >= 0, na.rm = T) && all(tumor_table <= 1, na.rm = T)
-  control_is_fraction <- all(control_table >= 0, na.rm = T) && all(control_table <= 1, na.rm = T)
-  if (tumor_is_fraction && control_is_fraction) {
-    tumor_table <- tumor_table*100
-    control_table <- control_table*100
-    storage.mode(control_table) <- "integer"
-    storage.mode(tumor_table) <- "integer"
+  diff_range <- diff(range(beta_table, na.rm = TRUE))
+  if (diff_range <= 1 || diff_range > 100) {
+    stop(paste0("For computation efficiency please convert tumor and control",
+        "tables to percentage value."))
   } else {
-    stop("tumor_table and control_table must contain decimal values")
+    beta_table <- round(beta_table)
+    storage.mode(beta_table) <- "integer"
   }
-  stopifnot(is.data.frame(dmr_table))
-  stopifnot(all(names(dmr_table) == c('chr', 'start', 'end', 'nseg', 'state',
-        'avg_beta_diff', 'p_value', 'q_value')))
+
+  assertthat::assert_that(is.data.frame(reference_table))
+  assertthat::assert_that(length(reference_table) >= 2)
+  if (nrow(tumor_table) != nrow(control_table) ||
+      nrow(tumor_table) != nrow(reference_table)) {
+   stop("Tumor and control tables must have as many rows as reference_table.")
+  }
+
+  assertthat::assert_that(is.data.frame(dmr_table))
+  assertthat::assert_that(all(names(dmr_table) == c('chr', 'start', 'end',
+        'nseg', 'state', 'avg_beta_diff', 'p_value', 'q_value')))
 
   # compute z-scores
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
-  dmr_table <- dmr_table[dmr_table$state %in% c(1,3), ]
-  tumor_dmr_beta   <- matrix(nrow = nrow(dmr_table), ncol = ncol(tumor_table))
-  control_dmr_beta <- matrix(nrow = nrow(dmr_table), ncol = ncol(control_table))
-  z_scores         <- matrix(nrow = nrow(dmr_table), ncol = ncol(tumor_table))
+  tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
+  control_dmr_beta <- matrix(NA, nrow(dmr_table), ncol(control_table))
+  z_scores         <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
 
+  pb <- txtProgressBar(1, nrow(dmr_table), style = 3)
   for (i in seq_len(nrow(dmr_table))) {
+    setTxtProgressBar(pb, i)
     idx_dmr <- with(dmr_table,
       which(reference_table[[1]] == chr[i] & reference_table[[2]] == start[i]):
         which(reference_table[[1]] == chr[i] & reference_table[[2]] == end[i]))
-    tumor_dmr_beta[i, ] <- apply(beta_table[idx_dmr, sample_state, drop=F], 2,
-      median, na.rm = T)
-    control_dmr_beta[i, ] <- apply(beta_table[idx_dmr, !sample_state, drop=F], 2,
-      median, na.rm = T)
-    z_scores[i, ] <- z_score(tumor_dmr_beta[i, ], control_dmr_beta[i, ])
+
+    tumor_dmr_beta[i,] <-
+      apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+
+    control_dmr_beta[i,] <-
+      apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+
+    z_scores[i,] <- z_score(tumor_dmr_beta[i,], control_dmr_beta[i,])
+    if(i %% 100 == 0){
+      setTxtProgressBar(pb, i)
+    }
   }
+  close(pb)
   rnames <- with(dmr_table, sprintf("chr%s:%s-%s", chr, start, end))
-  dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
+  dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
 
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
       control_dmr_beta = control_dmr_beta))
@@ -66,5 +75,5 @@ compute_z_score <- function(tumor_table, control_table, dmr_table,
 #' @keywords internal
 #'
 z_score <- function(x, y){
-  (x - median(y, na.rm = T)) / mad(y, na.rm = T)
+  (x - median(y, na.rm = TRUE)) / mad(y, na.rm = TRUE)
 }

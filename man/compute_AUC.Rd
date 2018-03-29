@@ -4,14 +4,14 @@
 \alias{compute_AUC}
 \title{Compute Area Under Curve for a matrix of samples}
 \usage{
-compute_AUC(tumor_table, control_table, nclust = 1, na_threshold = 0)
+compute_AUC(tumor_table, control_table, ncores = 1, na_threshold = 0)
 }
 \arguments{
-\item{tumor_table}{A matrix of beta-values from tumor samples.}
+\item{tumor_table}{A matrix of beta-values (fraction) from tumor samples.}
 
-\item{control_table}{A matrix of beta-values from normal/control samples.}
+\item{control_table}{A matrix of beta-values (fraction) from normal/control samples.}
 
-\item{nclust}{Number of clusters to use for parallel computing}
+\item{ncores}{Number of parallel processes to use for parallel computing}
 
 \item{na_threshold}{Fraction of NAs (considered independently in tumor and
 control samples) above which a site will not be selected (default=0)}

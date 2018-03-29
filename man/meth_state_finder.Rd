@@ -4,26 +4,34 @@
 \alias{meth_state_finder}
 \title{Mixture Coefficient Estimation}
 \usage{
-meth_state_finder(input_signal, input_pos, auc_sd, PT_start, length_cutoff)
+meth_state_finder(input_signal, input_pos, auc_sd, length_cutoff, pt_start,
+  normdist, ratiosd)
 }
 \arguments{
 \item{input_signal}{A numeric vector of AUC scores}
 
 \item{input_pos}{An integer vector of chromosomal locations}
 
-\item{auc_sd}{Standard deviation of AUC signal}
-
-\item{PT_start}{Fraction of AUC signal lower than 0.1 or greater than 0.9}
+\item{auc_sd}{Standard deviation of AUC signal (genome wide)}
 
 \item{length_cutoff}{An integer to remove streches of differential
 methylation shorter than cutoff}
+
+\item{pt_start}{Transition probability of the HSLM. Default is 0.05.}
+
+\item{normdist}{Distance normalization parameter of the HSLM. Default is 1e5.}
+
+\item{ratiosd}{Fraction between the standard deviation of AUC values of
+differentially methylated sites and the total standard deviation of AUC
+values. Default is 0.4.}
 }
 \value{
-An integer vector of methylated states
+An integer vector of the states of methylation.
 }
 \description{
-This function determines if a CpG site is differentially methylated using
-Hidden Markov Models.
+This function classifies CpG sites into hypo-methylated, not differentially
+methylated and hyper-methylated states using a Heterogeneous Shifting Level
+Model (HSLM).
 States:
 hypo-methylated  = 1;
 non-differential = 2;

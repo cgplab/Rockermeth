@@ -21,16 +21,13 @@
 #' @return An integer vector of the states of methylation.
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
-                              pt_start = 0.05, normdist = 1e5, ratiosd = 0.4) {
-  stopifnot(all(!is.na(input_signal)))
-  stopifnot(is.numeric(input_signal))
+                              pt_start, normdist, ratiosd) {
+  assertthat::assert_that(all(!is.na(input_signal)))
+  assertthat::assert_that(is.numeric(input_signal))
+  assertthat::assert_that(length(input_signal) == length(input_pos))
+
   input_pos <- as.integer(input_pos)
   length_cutoff <- as.integer(length_cutoff)
-
-  # omit NAs
-  final_states <- rep(NA, length(input_signal))
-  idx_not_na <- which(!is.na(input_signal))
-  input_signal <- input_signal[idx_not_na]
 
   muk <- c(0.25, 0.5, 0.75)
   sepsilon <- rep(auc_sd * ratiosd, length(muk))
@@ -56,7 +53,7 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   emission <- out[[10]]
   etav <- log(rep(1, KS) * (1/KS))
   psi <- matrix(data = 0, nrow = KS, ncol = W)
-  path <- c(as.integer(rep(0, W)))
+  path <- as.integer(rep(0, W))
 
   ##### Viterbi Algorithm ####
   out2 <- .Fortran("bioviterbii", as.vector(etav), as.matrix(P),
@@ -65,8 +62,7 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   meth_states <- out2[[6]]
 
   # fix output: "undifferentiate" short segments, reinsert NAs, correct NAs
-  final_states <- fix_short_segments(meth_states, cutoff = length_cutoff)
-  return(final_states)
+  return(fix_short_segments(meth_states, cutoff = length_cutoff))
 }
 
 #' Fix Short Methylation States
@@ -79,11 +75,13 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
 #' @param cutoff Length cutoff: longer segments will be ignored
 #' @keywords internal
 fix_short_segments <- function(meth_states, cutoff) {
+  assertthat::assert_that(all(meth_states >= 1 & meth_states <= 3))
   rle_states <- S4Vectors::Rle(meth_states)
   rle_length <- S4Vectors::runLength(rle_states)
   rle_value <- S4Vectors::runValue(rle_states)
   starts <- S4Vectors::start(rle_states)
   ends <- S4Vectors::end(rle_states)
+
   idx <- which(rle_length <= cutoff & rle_value != 2)
   for (i in idx) {
     meth_states[starts[i]:ends[i]] <- 2
