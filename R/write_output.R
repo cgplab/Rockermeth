@@ -18,6 +18,7 @@
 #' lower than threshold.
 #'
 #' @importFrom utils write.table
+#' @importFrom dplyr `%>%`
 #' @export
 write_output <- function(dmr_table, sample_score, path, qvalue_thr = 0.05){
   # check parameters

@@ -5,3 +5,4 @@
   q-value); seg file  with avg beta (single samples and tumor type) no report
   methylation state: self-evident by avg_beta
 - [ ] change write output so that depending on what table you pass write seg or bed file or both
+- [ ] split hyper and hypo bed files
