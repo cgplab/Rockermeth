@@ -27,7 +27,7 @@ write_output <- function(dmr_table, sample_score, path, qvalue_thr = 0.05){
   if (missing(path)) {
     stop("Provide a path to write BED and SEG files.")
   }
-  dmr_table <- dplyr::filter(dmr_table, state == c(1,3))
+  dmr_table <- dplyr::filter(dmr_table, state %in% c(1,3))
   idx_dmr <- which(dmr_table$q_value < qvalue_thr)
   if (length(idx_dmr) == 0){
     warning("No DMR with significant q-value retrieved, hence no output produced.")

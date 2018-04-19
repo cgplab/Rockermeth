@@ -1,10 +1,10 @@
 Package: ROCkerMeth
 Title: Receiver Operating Characteristic curve analyzER of DNA METHylation data
-Version: 0.0.5.9000
+Version: 0.0.6
 Date: 2018-03-29
-Authors@R: c(person("Dario", "Romagnoli", role = "cre",
-    email = "dario.romagnoli87@gmail.com"),
-    person("Matteo", "Benelli", role = "aut"),
+Authors@R: c(
+    person("Dario", "Romagnoli", role = "cre", email = "dario.romagnoli87@gmail.com"),
+    person("Matteo", "Benelli", role = c("aut", "cre")),
     person("Alberto", "Magi", role = "aut"))
 Description: A tool to discover differentially methylated regions (DMR)
 Depends: R (>= 3.4.3)
