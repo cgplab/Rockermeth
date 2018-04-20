@@ -4,8 +4,8 @@
 #' segregation between tumor and control samples accordingly to their
 #' methylation (beta) values.
 #'
-#' @param tumor_table A matrix of beta-values (fraction) from tumor samples.
-#' @param control_table A matrix of beta-values (fraction) from normal/control samples.
+#' @param tumor_table A matrix of beta-values (percentage) from tumor samples.
+#' @param control_table A matrix of beta-values (percentage) from normal/control samples.
 #' @param ncores Number of parallel processes to use for parallel computing
 #' @param na_threshold Fraction of NAs (considered independently in tumor and
 #' control samples) above which a site will not be selected (default=0)
