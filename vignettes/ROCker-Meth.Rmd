@@ -28,28 +28,28 @@ Methylation data) tool consists of four main modules:
 The package include also a fuction (**write_bed**) to easily produce a bed file
 to visually inspect discovered DMR using a genome browser.
 
-# Rocker-meth Tutorial
-The following tutorial describes the use of Rocker-meth to identify 
+# ROCker-Meth Tutorial
+The following tutorial describes the use of Rocker-meth to identify
 Differentially Methylated Sites (DMSs) with AUC statistics, Differentially Methylated Regions (DMRs)
 by a tailored Heterogeneous Shifting Level Model based algorithm and samples supporting DMRs.
 
-First, we need to install the Rocker-meth R package, available at https://github.com/cgplab/ROCkerMeth 
+First, we need to install the Rocker-meth R package, available at https://github.com/cgplab/ROCkerMeth
 
-```{r, eval = F} 
+```{r, eval = F}
 # install.packages("devtools")
 devtools::install_github("cgplab/ROCkerMeth")
 ```
 
 Once you have installed the package, you need to load it (with other useful packages)
 
-```{r message=F, warning=F}
+```{r message=F, warning=F, include=T}
 library(ROCkerMeth)
 ```
 
 
 ## Prepare the data
 
-You need to properly prepare DNA methylation data. Required data include: 
+You need to properly prepare DNA methylation data. Required data include:
 
 1. Table of beta values (percentage) of tumor samples (samples in columns, CpG sites in rows).
 
@@ -57,30 +57,30 @@ You need to properly prepare DNA methylation data. Required data include:
 
 3. Data frame reporting chromosomal and genomic position of each CpG site.
 
-As an example, we will use a subset of the Prostate Adenocarcinoma dataset from TCGA (PRAD). To to the fact that we will use only 20 TP and 10 NT samples, results are markedly different with respect to the original dataset. Subset data have been already prepared and available from the ROCkerMeth package. 
+As an example, we will use a subset of the Prostate Adenocarcinoma dataset from TCGA (PRAD). To to the fact that we will use only 20 TP and 10 NT samples, results are markedly different with respect to the original dataset. Subset data have been already prepared and available from the ROCkerMeth package.
 
 ```{r}
-head (beta_table_tp[, 1:5])
-head (beta_table_nt[, 1:5])
-head (illumina450k_hg19)
+head(PRAD_TP_subset[, 1:5])
+head(PRAD_NT_subset[, 1:5])
+head(illumina450k_hg19)
 ```
 
 ## Identification of Differentially Methylated Sites (DMSs) by AUC
-Rocker-meth uses AUC statistics to identify DMSs. It implements a function (**compute_AUC**) able to perform parallel computing of the AUC for each site. This step takes a while. In case, you can increase *ncores* parameter to calculate AUCs faster). 
+Rocker-meth uses AUC statistics to identify DMSs. It implements a function (**compute_AUC**) able to perform parallel computing of the AUC for each site. This step takes a while. In case, you can increase *ncores* parameter to calculate AUCs faster).
 
 ```{r message=F, warning=F, eval=FALSE}
-auc_meth <- compute_AUC(tumor_table = beta_table_tp, control_table = beta_table_nt, 
+PRAD_auc <- compute_AUC(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
                         ncores = 2, na_threshold = 0)
 ```
 
 ```{r message=F, warning=F, eval=TRUE}
-head (auc_meth)
+head(PRAD_auc)
 ```
 
-na_threshold refers to the fraction of samples permitted to be NA at a give site (no beta value available). By setting it to 0, we will calculate AUC only for those sites having complete data (i.e. available beta value for all tumor and normal samples). 
-Now, you can look at the distribution of AUCs and visually estimate the fraction of hypo (AUC < 0.2) and hyper (AUC > 0.8) DMSs. 
+na_threshold refers to the fraction of samples permitted to be NA at a give site (no beta value available). By setting it to 0, we will calculate AUC only for those sites having complete data (i.e. available beta value for all tumor and normal samples).
+Now, you can look at the distribution of AUCs and visually estimate the fraction of hypo (AUC < 0.2) and hyper (AUC > 0.8) DMSs.
 ```{r fig.cap="Histogram of AUC", fig.height=5, fig.width=6}
-auc_density <- density(auc_meth, bw = 0.2, from = 0, to = 1, na.rm = T)
+auc_density <- density(PRAD_auc, bw = 0.2, from = 0, to = 1, na.rm = T)
 {plot(auc_density, frame.plot = F, col = "black", main = "", las = 1)
 abline (v = c(0.2, 0.8), col = c("blue", "red"), lty = 2)
 text(.1, max(auc_density$y*0.95), "hypo-methylation", cex = .8)
@@ -90,24 +90,24 @@ text(.9, max(auc_density$y*0.95), "hyper-methylation", cex = .8)}
 You can print and write a table reporting DMS analysis and related annotation:
 
 ```{r}
-## calculate average beta value per site in both tumor (TP) and normal (NT) samples 
-avg_beta_tp <- apply(beta_table_tp, 1, mean, na.rm = T)
-avg_beta_nt <- apply(beta_table_nt, 1, mean, na.rm = T)
+## calculate average beta value per site in both tumor (TP) and normal (NT) samples
+avg_beta_tp <- apply(PRAD_TP_subset, 1, mean, na.rm = T)
+avg_beta_nt <- apply(PRAD_NT_subset, 1, mean, na.rm = T)
 ## create a flag for differential methylation analysis
-dms_flag <- rep(NA, length(auc_meth))
-dms_flag[which(auc_meth > 0.8)] <- "hyper"
-dms_flag[which(auc_meth < 0.2)] <- "hypo"
+dms_flag <- rep(NA, length(PRAD_auc))
+dms_flag[which(PRAD_auc > 0.8)] <- "hyper"
+dms_flag[which(PRAD_auc < 0.2)] <- "hypo"
 ## create the table
-dms_table <- cbind(illumina450k_hg19, avg_beta_nt, avg_beta_tp, auc_meth, dms_flag)
-head (dms_table)
+dms_table <- cbind(illumina450k_hg19, avg_beta_nt, avg_beta_tp, PRAD_auc, dms_flag)
+head(dms_table)
 #write.table(dms_table, file = "Table_DMS.txt", sep = "\t", row.names = F, quote = F)
 ```
 
 draw a plot like the following
 
 ```{r, fig.cap="Beta difference VS AUC, (TP vs NT)", fig.height=5, fig.width=6}
-cor_auc_betadiff <- cor(dms_table$auc_meth, (dms_table$avg_beta_tp-dms_table$avg_beta_nt), use = "na")
-{smoothScatter(dms_table$auc_meth, (dms_table$avg_beta_tp-dms_table$avg_beta_nt),
+cor_auc_betadiff <- cor(dms_table$PRAD_auc, (dms_table$avg_beta_tp-dms_table$avg_beta_nt), use = "na")
+{smoothScatter(dms_table$PRAD_auc, (dms_table$avg_beta_tp-dms_table$avg_beta_nt),
               xlab = "AUC", ylab = "Beta difference (TP vs NT)", las = 1, xlim = c(0, 1),
               ylim = c(-1, 1))
 text(0.05, .9, paste0("R=", format(cor_auc_betadiff, digits = 2) ))}
@@ -116,8 +116,8 @@ text(0.05, .9, paste0("R=", format(cor_auc_betadiff, digits = 2) ))}
 and order data by most significant differentially methylated sites
 
 ```{r}
-dms_table.srt <- dms_table[order(abs(dms_table$auc_meth-0.5), decreasing = T), ]
-head (dms_table.srt)
+dms_table.srt <- dms_table[order(abs(dms_table$PRAD_auc-0.5), decreasing = T), ]
+head(dms_table.srt)
 ```
 
 ## Identification of Differentially Methylated Regions (DMRs) by HSLM
@@ -126,14 +126,14 @@ To identify Differentially Methylated Regions, Rocker-meth uses a strategy based
 ```{r message=FALSE, warning=FALSE}
 ## order CpG sites by genomic coordinates
 idx <- order(illumina450k_hg19$Chromosome, illumina450k_hg19$Genomic_Coordinate)
-beta_table_tp <- beta_table_tp[idx,]
-beta_table_nt <- beta_table_nt[idx,]
-auc_meth.srt <- auc_meth[idx]
+PRAD_TP_subset <- PRAD_TP_subset[idx,]
+PRAD_NT_subset <- PRAD_NT_subset[idx,]
+PRAD_auc.srt <- PRAD_auc[idx]
 illumina450k_hg19 <- illumina450k_hg19[idx,]
 ## run segmentation of AUC
-dmr_table <- whole_genome_segmentator(tumor_table = beta_table_tp, control_table = beta_table_nt, 
-                                      auc_vector = auc_meth.srt, reference_table = illumina450k_hg19[3:4])
-head (dmr_table)
+dmr_table <- whole_genome_segmentator(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
+                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19[3:4])
+head(dmr_table)
 ```
 
 You can draw a vulcano plot to identify significant DMRs (GSTP1 is highlighted)
@@ -147,24 +147,24 @@ text(dmr_table$avg_beta_diff[gstp1], -log10(dmr_table$q_value)[gstp1], "GSTP1", 
 abline (h = -log10(0.05), lty = 2)}
 ```
 
-Now you can perform single sample analysis by Z-score statistics (it takes a while) 
+Now you can perform single sample analysis by Z-score statistics (it takes a while)
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
-sample_score <- compute_z_score(tumor_table = beta_table_tp, control_table = beta_table_nt, 
+PRAD_sample_score <- compute_z_score(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
                                 dmr_table = dmr_table, reference_table = illumina450k_hg19[3:4])
 ```
 
 ```{r message=FALSE, warning=FALSE, eval=TRUE}
-head (sample_score$z_scores[, 1:5])
+head(PRAD_sample_score$z_scores[, 1:5])
 ```
 
 Finally, the table of DMRs and sample scores can be written in a bed or a seg file to be viewed with genomic browser, such as IGV
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
-write_output(dmr_table = dmr_table, sample_score = sample_score, path = "~/PRAD.subset")
+write_output, path = "~/PRAD.subset"(dmr_table = dmr_table, sample_score = PRAD_sample_score)
 ```
 
-## Additonal info, code and data 
+## Additonal info, code and data
 
 [https://github.com/cgplab/ROCkerMeth](https://github.com/cgplab/ROCkerMeth)
 

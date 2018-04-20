@@ -1,7 +1,6 @@
 context("AUC functions") #####################################################
 
 test_that("single_AUC returns correct values", {
-  skip("here")
   a <- as.integer(c(runif(10, 51, 100), rep(NA, 2)))
   b <- as.integer(c(runif(10,  0,  50), rep(NA, 2)))
   d <- as.integer(c(runif(10, 51, 100), rep(NA, 1000)))
@@ -19,7 +18,6 @@ test_that("single_AUC returns correct values", {
 })
 
 test_that("compute_AUC works", {
-  skip("here")
   expect_error(compute_AUC(1, 1, 100), "ncores not less")
   expect_error(compute_AUC(tumor_toy_table/100, control_toy_table/100),
     "For computation efficiency")
@@ -30,7 +28,6 @@ test_that("compute_AUC works", {
 context("meth_state_finder") ##################################################
 
 test_that("fix_short_segments works", {
-  skip("here")
   x <- c(3,4)
   expect_error(fix_short_segments(x, 5), "Elements")
 
@@ -40,13 +37,13 @@ test_that("fix_short_segments works", {
 })
 
 test_that("meth_state_finder works", {
-  skip("here")
   idx_chr <- which(reference_toy_table[[1]] == "2")
   auc_sd <- sd(auc_toy_vector, na.rm = TRUE)
   x <- auc_toy_vector[idx_chr]
   y <- reference_toy_table[[2]][idx_chr]
   idx_not_NA <- which(!is.na(x))
-  meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5)
+  meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5,
+    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4)
   set.seed(1)
   expect_equal(sample(meth_states, 10), c(2, 2, 2, 2, 1, 2, 2, 1, 2, 2))
 
@@ -54,7 +51,6 @@ test_that("meth_state_finder works", {
 
 context("segmentator functions") ######################################
 test_that("segmentator returns correct table", {
-  skip("here")
   idx_chr <- which(reference_toy_table[[1]] == "2")
   auc_sd <- sd(auc_toy_vector, na.rm = TRUE)
   x <- auc_toy_vector[idx_chr]
@@ -72,7 +68,6 @@ test_that("segmentator returns correct table", {
 })
 
 test_that("whole_genome_segmentator works", {
-  skip("here")
   dmr_table <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
     auc_toy_vector, reference_toy_table)
   expect_is(dmr_table, "data.frame")
@@ -83,22 +78,26 @@ test_that("whole_genome_segmentator works", {
 
 context("ouput") ##############################################################
 test_that("compute_z_score and write_output works", {
-  skip("here")
   dmr_table <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
     auc_toy_vector, reference_toy_table)
   sample_score <- compute_z_score(tumor_toy_table, control_toy_table,
     dmr_table, reference_toy_table)
   expect_is(sample_score, "list")
   expect_length(sample_score, 3)
-  write_output(dmr_table, sample_score, "test", 0.8)
+  write_output("test", dmr_table, sample_score, 0.8)
+  expect_true(file.exists("test_hyper.bed"))
+  expect_true(file.exists("test_hypo.bed"))
   expect_true(file.exists("test.seg"))
-  file.remove("test.seg")
+  expect_true(file.exists("test_z_scores.seg"))
+  file.remove("test_hyper.bed", "test_hypo.bed", "test.seg", "test_z_scores.seg")
+  write_output("test", dmr_table, sample_score, 0.8)
 })
 
 context("long test") ########################################################
 test_that("TCGA-ESCA works", {
   data_folder <- "/projects/databases/data/TCGA/clean/harmonized/ESCA/"
   skip_if_not(dir.exists(data_folder))
+  skip("just skip")
   x <- round(readRDS(file.path(data_folder, "ESCA_DNAm_TP.rds"))*100)
   y <- round(readRDS(file.path(data_folder, "ESCA_DNAm_NT.rds"))*100)
   auc <- readRDS("/projects/packages/ROCkerMeth/data-raw/pancancer_auc.rds")[,"ESCA"]
@@ -116,25 +115,5 @@ test_that("TCGA-ESCA works", {
   expect_is(dmr_table, "data.frame")
   expect_is(sample_score, "list")
   expect_true(file.exists("/projects/packages/ROCkerMeth/esca.seg"))
-})
-test_that("TCGA-KIRP works", {
-  skip("checking")
-  data_folder <- "/projects/databases/data/TCGA/clean/harmonized/KIRP/"
-  skip_if_not(dir.exists(data_folder))
-  x <- readRDS(file.path(data_folder, "KIRP_DNAm_TP.rds"))
-  y <- readRDS(file.path(data_folder, "KIRP_DNAm_NT.rds"))
-  auc <- readRDS("/projects/packages/ROCkerMeth/data-raw/pancancer_auc.rds")[,"KIRP"]
-  load("/projects/packages/PAMES/data/illumina450k_hg19.rda")
-  idx <- order(illumina450k_hg19$Chromosome, illumina450k_hg19$Genomic_Coordinate)
-  x <- x[idx,]
-  y <- y[idx,]
-  auc <- auc[idx]
-  illumina450k_hg19 <- illumina450k_hg19[idx,]
-
-  dmr_table <- whole_genome_segmentator(x, y, auc, illumina450k_hg19[3:4])
-  sample_score <- compute_z_score(x, y, dmr_table, illumina450k_hg19[3:4])
-  write_output(dmr_table, "kirp")
-  expect_is(sample_score, "list")
-  expect_is(dmr_table, "data.frame")
-  expect_is(sample_score, "list")
+  file.remove("/projects/packages/ROCkerMeth/esca.seg")
 })

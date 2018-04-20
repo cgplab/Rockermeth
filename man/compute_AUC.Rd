@@ -7,9 +7,9 @@
 compute_AUC(tumor_table, control_table, ncores = 1, na_threshold = 0)
 }
 \arguments{
-\item{tumor_table}{A matrix of beta-values (fraction) from tumor samples.}
+\item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}
 
-\item{control_table}{A matrix of beta-values (fraction) from normal/control samples.}
+\item{control_table}{A matrix of beta-values (percentage) from normal/control samples.}
 
 \item{ncores}{Number of parallel processes to use for parallel computing}
 
