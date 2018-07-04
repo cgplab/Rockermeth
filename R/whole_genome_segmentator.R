@@ -73,7 +73,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   all_chr_segs <- vector("list", length(chromosomes))
   for (i in seq_along(chromosomes)) {
     chr <- chromosomes[i]
-    message (paste("Processing chromosome", chr))
+    message(paste("Processing chromosome", chr))
     idx_chr <- which(reference_table[[1]] == chr)
 
     # 1) compute methylation states (1,2,3)
