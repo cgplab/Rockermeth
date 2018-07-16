@@ -37,7 +37,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   diff_range_c <- diff(range(control_table, na.rm = TRUE))
   if (diff_range_t <= 1 || diff_range_t > 100 ||
       diff_range_c <= 1 || diff_range_c > 100) {
-    stop(paste0("For computation efficiency please convert tumor and control",
+    stop(paste0("For computation efficiency, please convert tumor and control",
         "tables to percentage value."))
   } else {
     tumor_table <- round(tumor_table)

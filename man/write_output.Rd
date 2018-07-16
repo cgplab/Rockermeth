@@ -26,10 +26,10 @@ DMRs.
 \details{
 BED files (hyper- and hypo-methylated DMRs separately) report genomic
 location and q-value (in form of -log10(q)).
-SEG files report average beta differences between tumor and normal/control samples
-at each DMR.
-Additionally, a SEG file reporting Z-scores for each tumor sample is generated
-providing a list produced by [compute_z_score].
+SEG files report average beta differences between tumor and normal/control
+samples at each DMR.
+Additionally, a SEG file reporting Z-scores for each tumor sample is
+generated providing a list produced by [compute_z_score].
 
 NOTE: BED files have 0-based coordinates while SEG files have 1-based
 coordinates.

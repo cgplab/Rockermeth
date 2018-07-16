@@ -9,6 +9,7 @@
 #' @param control_beta_mean a vector of average methylation (beta) values
 #'
 #' @return a data.frame with information about segments
+#' @export
 #' @keywords internal
 segmentator <- function(meth_states, tumor_beta_mean, control_beta_mean){
   assertthat::assert_that(length(tumor_beta_mean) == length(control_beta_mean))

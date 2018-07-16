@@ -7,8 +7,7 @@
 #' each CpG site.
 #' @importFrom stats mad median
 #' @export
-compute_z_score <- function(tumor_table, control_table, dmr_table,
-  reference_table) {
+compute_z_score <- function(tumor_table, control_table, dmr_table, reference_table) {
   # check parameters
   beta_table <- as.matrix(cbind(tumor_table, control_table))
   diff_range <- diff(range(beta_table, na.rm = TRUE))
@@ -37,6 +36,7 @@ compute_z_score <- function(tumor_table, control_table, dmr_table,
   control_dmr_beta <- matrix(NA, nrow(dmr_table), ncol(control_table))
   z_scores         <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
 
+  message("Computing z-score")
   pb <- txtProgressBar(1, nrow(dmr_table), style = 3)
   for (i in seq_len(nrow(dmr_table))) {
     setTxtProgressBar(pb, i)
@@ -45,12 +45,13 @@ compute_z_score <- function(tumor_table, control_table, dmr_table,
         which(reference_table[[1]] == chr[i] & reference_table[[2]] == end[i]))
 
     tumor_dmr_beta[i,] <-
-      apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+      apply(beta_table[idx_dmr, sample_state, drop=FALSE], 2, median, na.rm=TRUE)
 
     control_dmr_beta[i,] <-
-      apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+      apply(beta_table[idx_dmr, !sample_state, drop=FALSE], 2, median, na.rm=TRUE)
 
-    z_scores[i,] <- z_score(tumor_dmr_beta[i,], control_dmr_beta[i,])
+    z_scores[i,] <- (tumor_dmr_beta[i,]-median(control_dmr_beta[i,], na.rm=TRUE))/
+      mad(control_dmr_beta[i,], na.rm=TRUE)
     if(i %% 100 == 0){
       setTxtProgressBar(pb, i)
     }
@@ -63,17 +64,4 @@ compute_z_score <- function(tumor_table, control_table, dmr_table,
 
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
       control_dmr_beta = control_dmr_beta))
-}
-
-#' Z-score
-#'
-#' Compute a Z-score like value
-#'
-#' @param x A numeric vector
-#' @param y A numeric vector
-#' @importFrom stats mad median
-#' @keywords internal
-#'
-z_score <- function(x, y){
-  (x - median(y, na.rm = TRUE)) / mad(y, na.rm = TRUE)
 }

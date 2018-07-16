@@ -138,13 +138,14 @@ head(dmr_table)
 
 You can draw a vulcano plot to identify significant DMRs (GSTP1 is highlighted)
 
-```{r fig.cap= "Vulcano Plot", fig.height=5, fig.width=6}
-{plot(dmr_table$avg_beta_diff, -log10(dmr_table$q_value), log = "y", las = 1,  frame.plot = F, pch = 16, col = "grey",
+```{r fig.cap= "Volcano Plot", fig.height=5, fig.width=6}
+{plot(dmr_table$avg_beta_diff, -log10(dmr_table$q_value), log = "y", las = 1,
+     frame.plot = F, pch = 16, col = "grey",
      ylab = "-log10(FDR)", xlab = "Avg Beta difference (TP vs NT)", cex = .7)
 gstp1 <- which(dmr_table$chr == "11" & dmr_table$start < 67351000 & dmr_table$end > 67351000)
 points(dmr_table$avg_beta_diff[gstp1], -log10(dmr_table$q_value)[gstp1], pch = 16, cex = 1, col = "black")
 text(dmr_table$avg_beta_diff[gstp1], -log10(dmr_table$q_value)[gstp1], "GSTP1", pos = 2)
-abline (h = -log10(0.05), lty = 2)}
+abline(h = -log10(0.05), lty = 2)}
 ```
 
 Now you can perform single sample analysis by Z-score statistics (it takes a while)

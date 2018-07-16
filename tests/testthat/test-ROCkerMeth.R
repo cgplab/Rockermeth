@@ -46,7 +46,6 @@ test_that("meth_state_finder works", {
     pt_start = 0.05, normdist = 1e5, ratiosd = 0.4)
   set.seed(1)
   expect_equal(sample(meth_states, 10), c(2, 2, 2, 2, 1, 2, 2, 1, 2, 2))
-
 })
 
 context("segmentator functions") ######################################
