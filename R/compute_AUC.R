@@ -33,29 +33,34 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 
   cl <- parallel::makeCluster(ncores)
   auc <- parallel::parApply(cl, beta_table, 1, single_AUC,
-    state = sample_state, na_threshold = na_threshold)
+    states = sample_state, na_threshold = na_threshold)
   parallel::stopCluster(cl)
   return(auc)
 }
 
 #' Compute AUC a single vector
 #'
+#' Use Wilcoxon method to compute AUC.
 #' Return NA if NA samples are more than threshold
 #'
-#' @param x integer vector (range 1-100)
-#' @param state logical vector
-#' @param na_threshold numeric
+#' @param scores integer vector (range 1-100)
+#' @param states logical vector (class labels)
+#' @param na_threshold fraction of scores (range 0-1)
 #' @keywords internal
-single_AUC <- function(x, state, na_threshold) {
-  assertthat::assert_that(is.integer(x))
-  all_NA <- all(is.na(x))
-  tumor_NA <- sum(is.na(x[state])) / length(x[state]) > na_threshold
-  control_NA <- sum(is.na(x[!state])) / length(x[!state]) > na_threshold
-  if (all_NA || tumor_NA || control_NA ) {
+single_AUC <- function(scores, states, na_threshold) {
+  assertthat::assert_that(is.integer(scores))
+  assertthat::assert_that(is.logical(states))
+  if (all(is.na(scores))) {
     return(NA)
-  } else {
-    roc <- ROC::rocdemo.sca(state[!is.na(x)], x[!is.na(x)],
-      cutpts = seq(0, 100, 1))
-    return(ROC::AUC(roc))
   }
+  tumor_NA <- sum(is.na(scores[states]))/sum(states) > na_threshold
+  control_NA <- sum(is.na(scores[!states]))/sum(!states) > na_threshold
+  if (tumor_NA || control_NA) {
+    return(NA)
+  }
+  n1 <- sum(states[!is.na(scores)])
+  n2 <- sum(!states[!is.na(scores)])
+  R1 <- sum(rank(scores)[states])
+  U1 <- R1 - n1*(n1+1)/2
+  return(U1/(n1*n2))
 }
