@@ -23,7 +23,7 @@ Methylation data) tool consists of four main modules:
    Wilcoxon-Mann-Whitney (WMW) test on beta values of tumor versus normal
    samples
 
-4. identification of sample specific DMRs by Z-score statistics (**compute_z_score**).
+4. identification of sample specific DMRs by Z-score statistics (**compute_z_scores**).
 
 The package include also a fuction (**write_bed**) to easily produce a bed file
 to visually inspect discovered DMR using a genome browser.
@@ -151,7 +151,7 @@ abline(h = -log10(0.05), lty = 2)}
 Now you can perform single sample analysis by Z-score statistics (it takes a while)
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
-PRAD_sample_score <- compute_z_score(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
+PRAD_sample_score <- compute_z_scores(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
                                 dmr_table = dmr_table, reference_table = illumina450k_hg19[3:4])
 ```
 

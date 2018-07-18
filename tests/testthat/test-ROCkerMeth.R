@@ -1,4 +1,17 @@
 context("AUC functions") #####################################################
+auc_wmw2 <- function(scores,labels){
+  labels <- as.logical(labels)
+  n1 <- sum(labels)
+  n2 <- sum(!labels)
+  R1 <- sum(rank(scores)[labels])
+  U1 <- R1 - n1 * (n1 + 1)/2
+  U1/(n1 * n2)
+}
+a <- as.integer(c(runif(10, 51, 100)))
+b <- as.integer(c(runif(10,  0,  50)))
+single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))), .2)
+auc_wmw2(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))))
+
 
 test_that("single_AUC returns correct values", {
   a <- as.integer(c(runif(10, 51, 100), rep(NA, 2)))
@@ -6,6 +19,7 @@ test_that("single_AUC returns correct values", {
   d <- as.integer(c(runif(10, 51, 100), rep(NA, 1000)))
   e <- as.integer(c(runif(10,  0,  50), rep(NA, 1000)))
   auc <- single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))), .2)
+  auc <- auc_wmw2(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))))
   expect_equal(auc, 1)
   auc <- single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))), 0)
   expect_equal(auc, NA)
