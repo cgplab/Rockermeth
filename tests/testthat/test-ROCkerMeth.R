@@ -1,36 +1,22 @@
 context("AUC functions") #####################################################
-auc_wmw2 <- function(scores,labels){
-  labels <- as.logical(labels)
-  n1 <- sum(labels)
-  n2 <- sum(!labels)
-  R1 <- sum(rank(scores)[labels])
-  U1 <- R1 - n1 * (n1 + 1)/2
-  U1/(n1 * n2)
-}
-a <- as.integer(c(runif(10, 51, 100)))
-b <- as.integer(c(runif(10,  0,  50)))
-single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))), .2)
-auc_wmw2(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))))
-
+a <- as.integer(c(runif(10, 51, 100), NA))
+b <- as.integer(c(runif(10,  0,  50), NA))
+s <- c(rep(TRUE, length(a)), rep(FALSE, length(b)))
+single_AUC(c(a, b), s)
 
 test_that("single_AUC returns correct values", {
   a <- as.integer(c(runif(10, 51, 100), rep(NA, 2)))
   b <- as.integer(c(runif(10,  0,  50), rep(NA, 2)))
   d <- as.integer(c(runif(10, 51, 100), rep(NA, 1000)))
   e <- as.integer(c(runif(10,  0,  50), rep(NA, 1000)))
-  auc <- single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))), .2)
-  auc <- auc_wmw2(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))))
+  auc <- single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))))
   expect_equal(auc, 1)
-  auc <- single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))), 0)
-  expect_equal(auc, NA)
-  auc <- single_AUC(c(d, e), c(rep(TRUE, length(d)), rep(FALSE, length(e))), .9)
-  expect_equal(auc, NA)
-
-  auc <- single_AUC(c(tumor_toy_table[1,], control_toy_table[1,]), na_threshold=0,
-    state = c(rep(TRUE, ncol(tumor_toy_table)), rep(FALSE, ncol(control_toy_table))))
+  auc <- single_AUC(c(tumor_toy_table[1,], control_toy_table[1,]),
+    state=c(rep(TRUE, ncol(tumor_toy_table)), rep(FALSE, ncol(control_toy_table))))
   expect_is(auc, "numeric")
 })
 
+load_all()
 test_that("compute_AUC works", {
   expect_error(compute_AUC(1, 1, 100), "ncores not less")
   expect_error(compute_AUC(tumor_toy_table/100, control_toy_table/100),
@@ -90,10 +76,10 @@ test_that("whole_genome_segmentator works", {
 })
 
 context("ouput") ##############################################################
-test_that("compute_z_score and write_output works", {
+test_that("compute_z_scores and write_output works", {
   dmr_table <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
     auc_toy_vector, reference_toy_table)
-  sample_score <- compute_z_score(tumor_toy_table, control_toy_table,
+  sample_score <- compute_z_scores(tumor_toy_table, control_toy_table,
     dmr_table, reference_toy_table)
   expect_is(sample_score, "list")
   expect_length(sample_score, 3)
