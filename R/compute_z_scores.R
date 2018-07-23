@@ -32,7 +32,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_ta
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
   tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
   control_dmr_beta <- matrix(NA, nrow(dmr_table), ncol(control_table))
-  message("Computing DMR median beta")
+  message(sprintf("[%s] Computing DMR median beta", Sys.time()))
   pb <- txtProgressBar(1, nrow(dmr_table), style = 3)
   for (i in seq_len(nrow(dmr_table))) {
     setTxtProgressBar(pb, i)
@@ -46,13 +46,14 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_ta
     }
   }
   close(pb)
-  message("Computing z-score")
-  z_scores <- (tumor_dmr_beta-apply(control_dmr_beta, 1, median, na.rm=TRUE))/apply(control_dmr_beta, 1, mad, na.rm=TRUE)
+  message(sprintf("[%s] Computing z-scores", Sys.time()))
+  z_scores <-
+    (tumor_dmr_beta-apply(control_dmr_beta, 1, median, na.rm=TRUE))/apply(control_dmr_beta, 1, mad, na.rm=TRUE)
   rnames <- with(dmr_table, sprintf("chr%s:%s-%s", chr, start, end))
   dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
-
+  message(sprintf("[%s] Done",  Sys.time()))
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
       control_dmr_beta = control_dmr_beta))
 }
