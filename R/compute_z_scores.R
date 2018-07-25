@@ -63,8 +63,7 @@ compute_z_score_2 <- function(tumor_table, control_table, dmr_table,
       if(c %% 100 == 0){
         setTxtProgressBar(pb, c)
       }
-      message(sprintf("[%s] Computing z-scores", Sys.time()))
-      
+      # Control prints
       print(dmr_table[i,])
       print(glue("n of CpG in tumor: ", length(tumor_dmr_beta[i,], 
                                                "n of CpG in normal: ", length(control_dmr_beta[i,]) ) ))
