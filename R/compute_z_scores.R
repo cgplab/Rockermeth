@@ -9,7 +9,7 @@
 #' @importFrom GenomicRanges GRanges findOverlaps
 #' @export
 compute_z_score_2 <- function(tumor_table, control_table, dmr_table,
-                              reference_table) {
+                              reference_table, min_size) {
   # check parameters
   beta_table <- as.matrix(cbind(tumor_table, control_table))
   diff_range <- diff(range(beta_table, na.rm = TRUE))
@@ -36,6 +36,7 @@ compute_z_score_2 <- function(tumor_table, control_table, dmr_table,
   tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
   control_dmr_beta <- matrix(NA, nrow(dmr_table), ncol(control_table))
   z_scores         <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
+  na_frac          <- matrix(NA, nrow(dmr_table), ncol(tumor_table)) 
   
   ###
   sites <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
@@ -45,7 +46,6 @@ compute_z_score_2 <- function(tumor_table, control_table, dmr_table,
                                  ranges = IRanges(start = dmr_table$start, end = dmr_table$end))
   overlaps <- data.frame(GenomicRanges::findOverlaps(sites, dmrs))
   dmr_idxs <- unique(overlaps$subjectHits)
-  
   
   c = 0
   
@@ -60,19 +60,15 @@ compute_z_score_2 <- function(tumor_table, control_table, dmr_table,
         apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
       control_dmr_beta[i,] <-
         apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+      na_frac[i,] <- 
+        apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
+      
       if(c %% 100 == 0){
         setTxtProgressBar(pb, c)
       }
-      message(sprintf("[%s] Computing z-scores", Sys.time()))
-      
-      print(dmr_table[i,])
-      print(glue("n of CpG in tumor: ", length(tumor_dmr_beta[i,], 
-                                               "n of CpG in normal: ", length(control_dmr_beta[i,]) ) ))
-      
-      # z_scores[i,] <- z_score(tumor_dmr_beta[i,], control_dmr_beta[i,])
     }
-    close(pb)
   }
+  close(pb)
   
   message(sprintf("[%s] Computing z-scores", Sys.time()))
   z_scores <-
@@ -82,6 +78,7 @@ compute_z_score_2 <- function(tumor_table, control_table, dmr_table,
   dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
   dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
+  dimnames(na_frac)          <- list(rnames, colnames(beta_table)[sample_state])
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
-              control_dmr_beta = control_dmr_beta))
+              control_dmr_beta = control_dmr_beta, na_frac = na_frac))
 }
