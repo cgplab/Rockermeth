@@ -16,10 +16,12 @@ Suggests: knitr,
     rmarkdown,
     testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Imports: ROC,
     parallel,
     S4Vectors,
     tidyr,
     dplyr,
-    assertthat
+    assertthat,
+    GenomicRanges,
+    IRanges

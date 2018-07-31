@@ -80,9 +80,9 @@ test_that("compute_z_scores and write_output works", {
   dmr_table <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
     auc_toy_vector, reference_toy_table)
   sample_score <- compute_z_scores(tumor_toy_table, control_toy_table,
-    dmr_table, reference_toy_table)
+    dmr_table, reference_toy_table, 1)
   expect_is(sample_score, "list")
-  expect_length(sample_score, 3)
+  expect_length(sample_score, 4)
   write_output("test", dmr_table, sample_score, 0.8)
   expect_true(file.exists("test_hyper.bed"))
   expect_true(file.exists("test_hypo.bed"))
@@ -91,6 +91,7 @@ test_that("compute_z_scores and write_output works", {
   file.remove("test_hyper.bed", "test_hypo.bed", "test.seg", "test_z_scores.seg")
   write_output("test", dmr_table, sample_score, 0.8)
 })
+
 
 context("long test") ########################################################
 test_that("TCGA-ESCA works", {
@@ -108,7 +109,7 @@ test_that("TCGA-ESCA works", {
   illumina450k_hg19 <- illumina450k_hg19[idx,]
 
   dmr_table <- whole_genome_segmentator(x, y, auc, illumina450k_hg19[3:4])
-  sample_score <- compute_z_score(x, y, dmr_table, illumina450k_hg19[3:4])
+  sample_score <- compute_z_scores(x, y, dmr_table, illumina450k_hg19[3:4], 1)
   write_output(dmr_table, sample_score, "/projects/packages/ROCkerMeth/esca")
   expect_is(sample_score, "list")
   expect_is(dmr_table, "data.frame")
