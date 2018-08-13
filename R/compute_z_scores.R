@@ -1,4 +1,5 @@
-#' Compute a Z-like score to estimate quality of DMRs, relaxed requirements on homogeneity of data IN DEVELOPMENT
+#' Compute a Z-like score to estimate quality of DMRs. Assayed CpG may differ from the sites used in auc computation and segmentation.
+#' However, using the same assay for 'Normal' and 'Tumor' is highly recommended.
 #'
 #' @param tumor_table A matrix of beta-values (fraction) from tumor samples.
 #' @param control_table A matrix of beta-values (fraction) from normal/control samples.
@@ -61,8 +62,11 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
         apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
       control_dmr_beta[i,] <-
         apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+      
+      ##
       na_frac[i,] <-
         apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
+      ##
 
       if(c %% 100 == 0){
         setTxtProgressBar(pb, c)
@@ -79,7 +83,9 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
   dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
+  ##
   dimnames(na_frac)          <- list(rnames, colnames(beta_table)[sample_state])
+  ##
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
               control_dmr_beta = control_dmr_beta, na_frac = na_frac))
 }
