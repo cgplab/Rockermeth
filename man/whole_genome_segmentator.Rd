@@ -6,7 +6,7 @@
 \usage{
 whole_genome_segmentator(tumor_table, control_table, auc_vector,
   reference_table, length_cutoff = 5, pt_start = 0.05,
-  normdist = 1e+05, ratiosd = 0.4)
+  normdist = 100000, ratiosd = 0.4)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}

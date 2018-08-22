@@ -16,7 +16,7 @@ Suggests: knitr,
     rmarkdown,
     testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.0.9000
 Imports: ROC,
     parallel,
     S4Vectors,
