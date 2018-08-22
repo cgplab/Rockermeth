@@ -1,6 +1,7 @@
 # ROCkerMeth
 
-ROCkerMeth is tool for discovering Differentially Methylated Regions
+Personal dev branch.
+ROCkerMeth is a tool for discovering Differentially Methylated Regions
 
 ## Installation
 
