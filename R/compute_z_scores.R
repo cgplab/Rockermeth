@@ -55,6 +55,10 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3)
   for (i in seq(dmr_idxs)) {
     c = c + 1
+<<<<<<< HEAD
+=======
+    # setTxtProgressBar(pb, c)
+>>>>>>> master
     if (sum(i == overlaps$subject) >= min_size) {
       idx_dmr <- overlaps[which(overlaps$subjectHits == i),]$queryHits
       tumor_dmr_beta[i,] <-
