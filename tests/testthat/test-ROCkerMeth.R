@@ -16,7 +16,7 @@ test_that("single_AUC returns correct values", {
   expect_is(auc, "numeric")
 })
 
-load_all()
+devtools::load_all()
 test_that("compute_AUC works", {
   expect_error(compute_AUC(1, 1, 100), "ncores not less")
   expect_error(compute_AUC(tumor_toy_table/100, control_toy_table/100),
@@ -89,7 +89,26 @@ test_that("compute_z_scores and write_output works", {
   expect_true(file.exists("test.seg"))
   expect_true(file.exists("test_z_scores.seg"))
   file.remove("test_hyper.bed", "test_hypo.bed", "test.seg", "test_z_scores.seg")
-  write_output("test", dmr_table, sample_score, 0.8)
+})
+
+context("ouput") ##############################################################
+test_that("compute_z_scores in relaxed conditions and write_output", {
+
+  dmr_table_r <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
+                                        auc_toy_vector, reference_toy_table)
+  dmr_table_r$start <- dmr_table_r$start - 10
+  dmr_table_r$end <- dmr_table_r$end + 10
+
+  sample_score_r <- compute_z_scores(tumor_toy_table, control_toy_table,
+                                     dmr_table_r, reference_toy_table, 1)
+  expect_is(sample_score_r, "list")
+  expect_length(sample_score_r, 4)
+  write_output("test", dmr_table_r, sample_score_r, 0.8)
+  expect_true(file.exists("test_hyper.bed"))
+  expect_true(file.exists("test_hypo.bed"))
+  expect_true(file.exists("test.seg"))
+  expect_true(file.exists("test_z_scores.seg"))
+  file.remove("test_hyper.bed", "test_hypo.bed", "test.seg", "test_z_scores.seg")
 })
 
 

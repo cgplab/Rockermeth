@@ -41,7 +41,6 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   ## NA fraction matrix as a quality feedback
   na_frac          <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
 
-
   sites <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
                                   ranges = IRanges::IRanges(start = reference_table[[2]], width = 1),
                                   idx = seq_len(nrow(reference_table)))
@@ -56,7 +55,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3)
   for (i in seq(dmr_idxs)) {
     c = c + 1
-    setTxtProgressBar(pb, c)
+    # setTxtProgressBar(pb, c)
     if (sum(i == overlaps$subject) >= min_size) {
       idx_dmr <- overlaps[which(overlaps$subjectHits == i),]$queryHits
       tumor_dmr_beta[i,] <-
@@ -70,7 +69,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
       ##
       }
       if(c %% 100 == 0){
-        setTxtProgressBar(pb, c)
+      setTxtProgressBar(pb, c)
     }
   }
   close(pb)
