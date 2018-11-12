@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute_z_scores.R
 \name{compute_z_scores}
 \alias{compute_z_scores}
-\title{Compute a Z-like score to estimate quality of DMRs, relaxed requirements on homogeneity of data IN DEVELOPMENT}
+\title{Compute a Z-like score to estimate quality of DMRs}
 \usage{
 compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
   min_size)
@@ -19,5 +19,5 @@ compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
 \item{min_size}{Minimum number of CpG sites inside DMR. If not reached NAs will be returned.}
 }
 \description{
-Compute a Z-like score to estimate quality of DMRs, relaxed requirements on homogeneity of data IN DEVELOPMENT
+Compute a Z-like score to estimate quality of DMRs
 }
