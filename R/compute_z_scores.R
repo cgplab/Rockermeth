@@ -33,6 +33,11 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   assertthat::assert_that(all(names(dmr_table) == c('chr', 'start', 'end',
                                                     'nseg', 'state', 'avg_beta_diff', 'p_value', 'q_value')))
 
+  # check that chromosomes have levels in common
+  if (!any(reference_table[[1]] %in% dmr_table$chr)){
+    stop("ref_table and dmr_table have not the same chromosomes. Check if naming is consistent (ex. chr1 != 1).")
+  }
+
   # compute z-scores
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
   tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
