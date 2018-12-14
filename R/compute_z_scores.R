@@ -49,11 +49,15 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   sites <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
                                   ranges = IRanges::IRanges(start = reference_table[[2]], width = 1),
                                   idx = seq_len(nrow(reference_table)))
+
   dmrs <- GenomicRanges::GRanges(seqnames = dmr_table$chr,
                                  ranges = IRanges::IRanges(start = dmr_table$start, end = dmr_table$end))
+
   overlaps <- data.frame(GenomicRanges::findOverlaps(sites, dmrs))
   dmr_idxs <- unique(overlaps$subjectHits)
 
+
+  insuff_segs = 0
   c = 0
 
   message(sprintf("[%s] Computing DMR median beta", Sys.time()))
@@ -63,33 +67,41 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     # setTxtProgressBar(pb, c)
     if (sum(i == overlaps$subject) >= min_size) {
       idx_dmr <- overlaps[which(overlaps$subjectHits == i),]$queryHits
+      ##
       tumor_dmr_beta[i,] <-
         apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+      ##
       control_dmr_beta[i,] <-
         apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
-
       ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is
       na_frac[i,] <-
         apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
-      ##
-      }
-      if(c %% 100 == 0){
+
+    } else {
+      insuff_segs = insuff_segs + 1
+    }
+
+    if(c %% 100 == 0){
       setTxtProgressBar(pb, c)
     }
   }
   close(pb)
 
+  dmr_without_signal = (nrow(dmr_table) - length(dmr_idxs))
+  message(paste0("DMR without any probe: ", dmr_without_signal))
+
+  message(sprintf("%d DMRs without enough probes", insuff_segs))
   message(sprintf("[%s] Computing z-scores", Sys.time()))
   z_scores <-
-    (tumor_dmr_beta-apply(control_dmr_beta, 1, median, na.rm=TRUE))/apply(control_dmr_beta, 1, mad, na.rm=TRUE)
+    (tumor_dmr_beta-apply(control_dmr_beta, 1, median, na.rm=TRUE)) / apply(control_dmr_beta, 1, mad, na.rm=TRUE)
 
   rnames <- with(dmr_table, sprintf("chr%s:%s-%s", chr, start, end))
+
   dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
   dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
-  ##
   dimnames(na_frac)          <- list(rnames, colnames(beta_table)[sample_state])
-  ##
+
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
               control_dmr_beta = control_dmr_beta, na_frac = na_frac))
 }
