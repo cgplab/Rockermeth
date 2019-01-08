@@ -56,8 +56,6 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   overlaps <- data.frame(GenomicRanges::findOverlaps(sites, dmrs))
   dmr_idxs <- unique(overlaps$subjectHits)
 
-
-
   insuff_segs = 0
   c = 0
 
