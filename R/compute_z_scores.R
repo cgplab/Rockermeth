@@ -73,7 +73,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
       ##
       control_dmr_beta[i,] <-
         apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
-      ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is
+      ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is.
       na_frac[i,] <-
         apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
 
