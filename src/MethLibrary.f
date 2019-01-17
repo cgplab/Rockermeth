@@ -70,7 +70,7 @@
                    IF (J.EQ.K) THEN
                    P(J,(K+COUNTP))=ELNSUB(0.,(PT(K)+COV(I)))
                    ELSE
-                   P(J,(K+COUNTP))=PT(K)+COV(I)
+                   P(J,(K+COUNTP))=PT(K)+COV(I)-0.6931472
                    ENDIF
  720           CONTINUE
  710       CONTINUE
