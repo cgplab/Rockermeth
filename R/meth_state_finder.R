@@ -13,15 +13,17 @@
 #' @param auc_sd Standard deviation of AUC signal (genome wide)
 #' @param length_cutoff An integer to remove streches of differential
 #' methylation shorter than cutoff
-#' @param pt_start Transition probability of the HSLM. Default is 0.05.
-#' @param normdist Distance normalization parameter of the HSLM. Default is 1e5.
+#' @param pt_start Transition probability of the HSLM.
+#' @param normdist Distance normalization parameter of the HSLM.
 #' @param ratiosd Fraction between the standard deviation of AUC values of
 #' differentially methylated sites and the total standard deviation of AUC
-#' values. Default is 0.4.
+#' values.
+#' @param mu INSERT DESCRIPTION
+#'
 #' @return An integer vector of the states of methylation.
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
-                              pt_start, normdist, ratiosd) {
+                              pt_start, normdist, ratiosd, mu) {
   assertthat::assert_that(all(!is.na(input_signal)))
   assertthat::assert_that(is.numeric(input_signal))
   assertthat::assert_that(length(input_signal) == length(input_pos))
@@ -29,9 +31,10 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   input_pos <- as.integer(input_pos)
   length_cutoff <- as.integer(length_cutoff)
 
-  muk <- c(0.25, 0.5, 0.75)
-  sepsilon <- rep(auc_sd * ratiosd, length(muk))
-  sepsilon[which(muk == 0.5)] <- auc_sd * (1 - ratiosd)
+  # 2nd state is fixed (no diff methylation)
+  muk <- c(mu, .5, 1-mu)
+  sepsilon <- rep(auc_sd * ratiosd / (length(muk)-1), length(muk))
+  sepsilon[2] <- auc_sd * (1 - ratiosd)
 
   KS <- length(muk)
   CovPos <- diff(input_pos)
@@ -40,7 +43,6 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   W <- length(input_signal)
   NCov <- length(CovDist)
   PT <- log(rep(pt_start, KS))
-
   P <- matrix(data = 0, nrow = KS, ncol = (KS * NCov))
   emission <- matrix(data = 0, nrow = KS, ncol = W)
 
@@ -51,16 +53,17 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
                   as.matrix(emission))
   P <- out[[9]]
   emission <- out[[10]]
+
+  ##### Viterbi Algorithm ####
   etav <- log(rep(1, KS) * (1/KS))
   psi <- matrix(data = 0, nrow = KS, ncol = W)
   path <- as.integer(rep(0, W))
 
-  ##### Viterbi Algorithm ####
   out2 <- .Fortran("bioviterbii", as.vector(etav), as.matrix(P),
                    as.matrix(emission), as.integer(W), as.integer(KS), as.vector(path),
                    as.matrix(psi))
   meth_states <- out2[[6]]
 
-  # fix output: "undifferentiate" short segments, reinsert NAs, correct NAs
+  # fix output: set short segments to 2, reinsert NAs, correct NAs
   return(fix_short_segments(meth_states, cutoff = length_cutoff))
 }
