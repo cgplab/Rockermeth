@@ -8,7 +8,8 @@
 #' @param cutoff Length cutoff: longer segments will be ignored
 #' @keywords internal
 fix_short_segments <- function(meth_states, cutoff) {
-  assertthat::assert_that(all(meth_states >= 1 & meth_states <= 3))
+  assertthat::assert_that(all(meth_states %in% 1:3))
+
   rle_states <- S4Vectors::Rle(meth_states)
   rle_length <- S4Vectors::runLength(rle_states)
   rle_value <- S4Vectors::runValue(rle_states)

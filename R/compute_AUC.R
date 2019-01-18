@@ -19,7 +19,7 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
   assertthat::assert_that(ncores < system_cores)
 
   na_threshold <- as.numeric(na_threshold)
-  assertthat::assert_that(na_threshold >= 0 || na_threshold < 1)
+  assertthat::assert_that(na_threshold >= 0, na_threshold < 1)
 
   beta_table <- as.matrix(cbind(tumor_table, control_table))
   diff_range <- diff(range(beta_table, na.rm = TRUE))

@@ -1,4 +1,4 @@
-#' Compute a Z-like score to estimate quality of DMRs.
+#' Compute a Z-like score to estimate quality of DMRs
 #'
 #' Assayed CpG may differ from the sites used in auc computation and
 #' segmentation.  However, using the same assay for 'Normal' and 'Tumor' is
@@ -30,21 +30,18 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
 
   assertthat::assert_that(is.data.frame(reference_table))
   assertthat::assert_that(length(reference_table) >= 2)
-  if (nrow(tumor_table) != nrow(control_table) ||
-      nrow(tumor_table) != nrow(reference_table)) {
-    stop("Tumor and control tables must have as many rows as reference_table.")
-  }
+  assertthat::assert_that(nrow(tumor_table) == nrow(control_table),
+                          nrow(tumor_table) == nrow(reference_table))
   assertthat::assert_that(is.data.frame(dmr_table))
-  assertthat::assert_that(all(names(dmr_table) == c('chr', 'start', 'end',
-                                                    'nseg', 'state', 'avg_beta_diff', 'p_value', 'q_value')))
+  names_of_dmr_table <- c('chr', 'start', 'end', 'nseg', 'state', 'avg_beta_diff', 'p_value', 'q_value')
+  assertthat::assert_that(all(names(dmr_table) == names_of_dmr_table))
 
   # compute z-scores
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
   tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
   control_dmr_beta <- matrix(NA, nrow(dmr_table), ncol(control_table))
   z_scores         <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
-  ## NA fraction matrix as a quality feedback
-  na_frac          <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
+  na_frac          <- matrix(NA, nrow(dmr_table), ncol(tumor_table)) # NA fraction matrix as a quality feedback
 
   sites <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
                                   ranges = IRanges::IRanges(start = reference_table[[2]], width = 1),
@@ -86,9 +83,8 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
   dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
-  ##
   dimnames(na_frac)          <- list(rnames, colnames(beta_table)[sample_state])
-  ##
+
   return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
               control_dmr_beta = control_dmr_beta, na_frac = na_frac))
 }

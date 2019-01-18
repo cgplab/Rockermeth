@@ -1,8 +1,8 @@
 #' Define Differentially Methylated Regions
 #'
-#' Given a set of methylation states produced by [meth_states_finder] and a set of
-#' methylation (beta) values differences between tumor and control samples, this fucntion
-#' defines stretches of equal states (segments).
+#' Given a set of methylation states produced by [meth_states_finder] and a set
+#' of methylation (beta) values differences between tumor and control samples,
+#' this function defines stretches of equal states (segments).
 #'
 #' @param meth_states a vector of methylation states (1, 2, 3, NA)
 #' @param tumor_beta_mean a vector of average methylation (beta) values
