@@ -16,7 +16,6 @@ test_that("single_AUC returns correct values", {
   expect_is(auc, "numeric")
 })
 
-devtools::load_all()
 test_that("compute_AUC works", {
   expect_error(compute_AUC(1, 1, 100), "ncores not less")
   expect_error(compute_AUC(tumor_toy_table/100, control_toy_table/100),
@@ -43,9 +42,8 @@ test_that("meth_state_finder works", {
   y <- reference_toy_table[[2]][idx_chr]
   idx_not_NA <- which(!is.na(x))
   meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5,
-    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4)
-  set.seed(1)
-  expect_equal(sample(meth_states, 10), c(2, 2, 2, 2, 1, 2, 2, 1, 2, 2))
+    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.1)
+  expect_equal(as.numeric(table(meth_states)), c(49, 27895))
 })
 
 context("segmentator functions") ######################################
@@ -56,7 +54,7 @@ test_that("segmentator returns correct table", {
   y <- reference_toy_table[[2]][idx_chr]
   idx_not_NA <- which(!is.na(x))
   meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5,
-    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4)
+    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.25)
 
   tumor_toy_beta_mean <- apply(tumor_toy_table[idx_chr,], 1, mean, na.rm = TRUE)
   normal_beta_mean <- apply(control_toy_table[idx_chr,], 1, mean, na.rm = TRUE)
@@ -111,12 +109,11 @@ test_that("compute_z_scores in relaxed conditions and write_output", {
   file.remove("test_hyper.bed", "test_hypo.bed", "test.seg", "test_z_scores.seg")
 })
 
-
 context("long test") ########################################################
 test_that("TCGA-ESCA works", {
-  data_folder <- "/projects/databases/data/TCGA/clean/harmonized/ESCA/"
+  data_folder <- "/projects/databases/data/TCGA/harmonized/ESCA/"
   skip_if_not(dir.exists(data_folder))
-  skip("just skip")
+  # skip("just skip")
   x <- round(readRDS(file.path(data_folder, "ESCA_DNAm_TP.rds"))*100)
   y <- round(readRDS(file.path(data_folder, "ESCA_DNAm_NT.rds"))*100)
   auc <- readRDS("/projects/packages/ROCkerMeth/data-raw/pancancer_auc.rds")[,"ESCA"]
@@ -129,10 +126,13 @@ test_that("TCGA-ESCA works", {
 
   dmr_table <- whole_genome_segmentator(x, y, auc, illumina450k_hg19[3:4])
   sample_score <- compute_z_scores(x, y, dmr_table, illumina450k_hg19[3:4], 1)
-  write_output(dmr_table, sample_score, "/projects/packages/ROCkerMeth/esca")
+  write_output(dmr_table, sample_score, path="/projects/packages/ROCkerMeth/esca")
   expect_is(sample_score, "list")
   expect_is(dmr_table, "data.frame")
   expect_is(sample_score, "list")
   expect_true(file.exists("/projects/packages/ROCkerMeth/esca.seg"))
-  file.remove("/projects/packages/ROCkerMeth/esca.seg")
+  file.remove("esca_hyper.bed",
+              "esca_hypo.bed",
+              "esca.seg",
+              "esca_z_scores.seg")
 })

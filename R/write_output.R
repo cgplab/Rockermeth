@@ -36,7 +36,7 @@ write_output <- function(path, dmr_table, sample_score = NULL, qvalue_thr = 0.05
   }
   qvalue_thr <- as.numeric(qvalue_thr)
   assertthat::assert_that(!is.na(qvalue_thr))
-  assertthat::assert_that(qvalue_thr > 0 & qvalue_thr <= 1)
+  assertthat::assert_that(qvalue_thr > 0, qvalue_thr <= 1)
 
   idx_dmr <- which(dmr_table$q_value < qvalue_thr)
   if (length(idx_dmr) == 0){
@@ -46,8 +46,8 @@ write_output <- function(path, dmr_table, sample_score = NULL, qvalue_thr = 0.05
 
   # write bed files
   idx_names <- c("chr", "start", "end", "nseg", "q_value")
-  idx_hyper <- which(dmr_table[idx_dmr, "state"] == 3)
-  idx_hypo <- which(dmr_table[idx_dmr, "state"] == 1)
+  idx_hyper <- which(dmr_table$state[idx_dmr] == 3)
+  idx_hypo  <- which(dmr_table$state[idx_dmr] == 1)
   out_table_bed <- dmr_table[idx_dmr, idx_names]
   out_table_bed$start <- out_table_bed$start - 1
   out_table_bed$end <- out_table_bed$end - 1
