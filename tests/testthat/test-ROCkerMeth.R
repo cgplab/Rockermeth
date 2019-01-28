@@ -89,9 +89,7 @@ test_that("compute_z_scores and write_output works", {
   file.remove("test_hyper.bed", "test_hypo.bed", "test.seg", "test_z_scores.seg")
 })
 
-context("ouput") ##############################################################
 test_that("compute_z_scores in relaxed conditions and write_output", {
-
   dmr_table_r <- whole_genome_segmentator(tumor_toy_table, control_toy_table,
                                         auc_toy_vector, reference_toy_table)
   dmr_table_r$start <- dmr_table_r$start - 10
