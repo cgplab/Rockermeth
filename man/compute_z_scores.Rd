@@ -17,11 +17,16 @@ compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
 \item{reference_table}{A data.frame reporting the genomic coordinates of
 each CpG site in tumor and control matrices.}
 
-\item{min_size}{Minimum number of CpG sites inside DMR. If not reached NAs
-will be returned instead of z-scores.}
+\item{min_size}{Minimum number of CpG sites inside DMR to compute Z-score
+(return NA if lower).}
+}
+\value{
+A list of 4 tables: z-scores of DMRs, median beta of DMRs in
+tumor samples, median beta of DMRs in normal/control samples and fraction of
+NA CpG sites within DMRs.
 }
 \description{
 Assayed CpG may differ from the sites used in auc computation and
-segmentation.  However, using the same assay for 'Normal' and 'Tumor' is
-strictly recommended.
+segmentation. However, using the same assay for 'Normal' and 'Tumor' is
+strongly recommended.
 }

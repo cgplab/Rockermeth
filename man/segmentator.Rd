@@ -7,18 +7,18 @@
 segmentator(meth_states, tumor_beta_mean, control_beta_mean)
 }
 \arguments{
-\item{meth_states}{a vector of methylation states (1, 2, 3, NA)}
+\item{meth_states}{A vector of methylation states (1, 2, 3, NA).}
 
-\item{tumor_beta_mean}{a vector of average methylation (beta) values}
+\item{tumor_beta_mean}{A vector of average methylation (beta) values.}
 
-\item{control_beta_mean}{a vector of average methylation (beta) values}
+\item{control_beta_mean}{A vector of average methylation (beta) values.}
 }
 \value{
-a data.frame with information about segments
+A data.frame with information about segments.
 }
 \description{
-Given a set of methylation states produced by [meth_states_finder] and a set of
-methylation (beta) values differences between tumor and control samples, this fucntion
-defines stretches of equal states (segments).
+Given a set of methylation states produced by [meth_states_finder] and a set
+of methylation (beta) values differences between tumor and control samples,
+this function defines stretches of equal states (segments).
 }
 \keyword{internal}

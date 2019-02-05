@@ -25,7 +25,6 @@ test_that("compute_AUC works", {
 })
 
 context("meth_state_finder") ##################################################
-
 test_that("fix_short_segments works", {
   x <- c(3,4)
   expect_error(fix_short_segments(x, 5), "Elements")
@@ -43,7 +42,8 @@ test_that("meth_state_finder works", {
   idx_not_NA <- which(!is.na(x))
   meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5,
     pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.1)
-  expect_equal(as.numeric(table(meth_states)), c(49, 27895))
+  table(meth_states)
+  expect_equal(as.numeric(table(meth_states)), c(349, 27595))
 })
 
 context("segmentator functions") ######################################
@@ -61,7 +61,7 @@ test_that("segmentator returns correct table", {
   single_chr_segs <- segmentator(meth_states, tumor_toy_beta_mean, normal_beta_mean)
   expect_is(single_chr_segs, "data.frame")
   expect_length(single_chr_segs, 4)
-  expect_identical(names(single_chr_segs), c("nseg", "state", "avg_beta_diff", "p_value"))
+  expect_identical(names(single_chr_segs), c("nsites", "state", "avg_beta_diff", "p_value"))
 })
 
 test_that("whole_genome_segmentator works", {
@@ -70,7 +70,7 @@ test_that("whole_genome_segmentator works", {
   expect_is(dmr_table, "data.frame")
   expect_length(dmr_table, 8)
   expect_identical(names(dmr_table),
-    c("chr", "start", "end", "nseg", "state", "avg_beta_diff", "p_value", "q_value"))
+    c("chr", "start", "end", "nsites", "state", "avg_beta_diff", "p_value", "q_value"))
 })
 
 context("ouput") ##############################################################
@@ -110,8 +110,8 @@ test_that("compute_z_scores in relaxed conditions and write_output", {
 context("long test") ########################################################
 test_that("TCGA-ESCA works", {
   data_folder <- "/projects/databases/data/TCGA/harmonized/ESCA/"
+  skip_if(file.exists("/projects/packages/ROCkerMeth/skip_long_test"))
   skip_if_not(dir.exists(data_folder))
-  # skip("just skip")
   x <- round(readRDS(file.path(data_folder, "ESCA_DNAm_TP.rds"))*100)
   y <- round(readRDS(file.path(data_folder, "ESCA_DNAm_NT.rds"))*100)
   auc <- readRDS("/projects/packages/ROCkerMeth/data-raw/pancancer_auc.rds")[,"ESCA"]

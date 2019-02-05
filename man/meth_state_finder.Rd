@@ -5,28 +5,31 @@
 \title{Mixture Coefficient Estimation}
 \usage{
 meth_state_finder(input_signal, input_pos, auc_sd, length_cutoff, pt_start,
-  normdist, ratiosd)
+  normdist, ratiosd, mu)
 }
 \arguments{
-\item{input_signal}{A numeric vector of AUC scores}
+\item{input_signal}{A numeric vector of AUC scores.}
 
 \item{input_pos}{An integer vector of chromosomal locations}
 
-\item{auc_sd}{Standard deviation of AUC signal (genome wide)}
+\item{auc_sd}{Standard deviation of AUC signal (genome wide).}
 
 \item{length_cutoff}{An integer to remove streches of differential
-methylation shorter than cutoff}
+methylation shorter than cutoff.}
 
-\item{pt_start}{Transition probability of the HSLM. Default is 0.05.}
+\item{pt_start}{Transition probability of the HSLM.}
 
-\item{normdist}{Distance normalization parameter of the HSLM. Default is 1e5.}
+\item{normdist}{Distance normalization parameter of the HSLM.}
 
 \item{ratiosd}{Fraction between the standard deviation of AUC values of
 differentially methylated sites and the total standard deviation of AUC
-values. Default is 0.4.}
+values.}
+
+\item{mu}{Expected mean (AUC) for hypo-methylated state (1-mu is the
+expected mean for hyper-methylated state).}
 }
 \value{
-An integer vector of the states of methylation.
+An integer vector of methylation states.
 }
 \description{
 This function classifies CpG sites into hypo-methylated, not differentially

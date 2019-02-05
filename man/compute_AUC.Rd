@@ -12,7 +12,7 @@ compute_AUC(tumor_table, control_table, ncores = 1, na_threshold = 0)
 \item{control_table}{A matrix of beta-values (percentage) from
 normal/control samples.}
 
-\item{ncores}{Number of parallel processes to use for parallel computing}
+\item{ncores}{Number of parallel processes to use for parallel computing.}
 
 \item{na_threshold}{Fraction of NAs (considered independently in tumor and
 control samples) above which a site will not be selected (default=0).}

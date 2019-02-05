@@ -4,8 +4,9 @@
 #' hypo-(1) methylated stretches of sites shorter than or equal to cutoff, to
 #' non-differential state (2).
 #'
-#' @param meth_states An integer vector of methylation states
-#' @param cutoff Length cutoff: longer segments will be ignored
+#' @param meth_states An integer vector of methylation states.
+#' @param cutoff Length cutoff: longer segments will be ignored.
+#' @return A "fixed" vector of methylation states.
 #' @keywords internal
 fix_short_segments <- function(meth_states, cutoff) {
   assertthat::assert_that(all(meth_states %in% 1:3))

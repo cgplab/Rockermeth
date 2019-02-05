@@ -17,6 +17,9 @@ write_output(path, dmr_table, sample_score = NULL, qvalue_thr = 0.05)
 \item{qvalue_thr}{A numerical threshold. Report only DMRs with a q-value
 lower than threshold.}
 }
+\value{
+Nothing. Only saves output tables.
+}
 \description{
 For a quick visualization using a genome browser like IGV, this function
 generates [BED](https://bit.ly/1hdVNjA) and [SEG](https://bit.ly/2J2WZdZ)

@@ -8,19 +8,19 @@
 #' non-differential = 2;
 #' hyper-methylated = 3.
 #'
-#' @param input_signal A numeric vector of AUC scores
+#' @param input_signal A numeric vector of AUC scores.
 #' @param input_pos An integer vector of chromosomal locations
-#' @param auc_sd Standard deviation of AUC signal (genome wide)
+#' @param auc_sd Standard deviation of AUC signal (genome wide).
 #' @param length_cutoff An integer to remove streches of differential
-#' methylation shorter than cutoff
+#' methylation shorter than cutoff.
 #' @param pt_start Transition probability of the HSLM.
 #' @param normdist Distance normalization parameter of the HSLM.
 #' @param ratiosd Fraction between the standard deviation of AUC values of
 #' differentially methylated sites and the total standard deviation of AUC
 #' values.
-#' @param mu INSERT DESCRIPTION
-#'
-#' @return An integer vector of the states of methylation.
+#' @param mu Expected mean (AUC) for hypo-methylated state (1-mu is the
+#' expected mean for hyper-methylated state).
+#' @return An integer vector of methylation states.
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
                               pt_start, normdist, ratiosd, mu) {
@@ -33,7 +33,7 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
 
   # 2nd state is fixed (no diff methylation)
   muk <- c(mu, .5, 1-mu)
-  sepsilon <- rep(auc_sd * ratiosd / (length(muk)-1), length(muk))
+  sepsilon <- rep(auc_sd * ratiosd, length(muk))
   sepsilon[2] <- auc_sd * (1 - ratiosd)
 
   KS <- length(muk)

@@ -1,6 +1,6 @@
 #' Find Differentially Methylated Regions across whole genome
 #'
-#' A function to define DMR for an entire genome
+#' A function to define DMR for an entire genome.
 #'
 #' @param tumor_table A matrix of beta-values (percentage) from tumor samples.
 #' @param control_table A matrix of beta-values (percentage) from
@@ -15,8 +15,11 @@
 #' @param ratiosd Fraction between the standard deviation of AUC values of
 #' differentially methylated sites and the total standard deviation of AUC
 #' values. Default is 0.4.
-#' @param mu INSERT DESCRIPTION Default is 0.25.
-#'
+#' @param mu Expected mean (AUC) for hypo-methylated state (1-mu is the
+#' expected mean for hyper-methylated state). Default is 0.25.
+#' @return A data.frame reporting genomic location, number of CpG sites,
+#' methylation state, average beta difference (tumor vs. control), p-value and
+#' adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
 whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
@@ -79,7 +82,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
     single_chr_segs <- segmentator(meth_states, tumor_beta_mean[idx_chr],
       control_beta_mean[idx_chr])
 
-    meth_states <- with(single_chr_segs, rep(state, nseg))
+    meth_states <- with(single_chr_segs, rep(state, nsites))
     rle_states <- S4Vectors::Rle(meth_states)
     rle_start <- S4Vectors::start(rle_states)
     rle_end <- S4Vectors::end(rle_states)
