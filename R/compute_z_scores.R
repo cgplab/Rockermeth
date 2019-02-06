@@ -16,8 +16,6 @@
 #' NA CpG sites within DMRs.
 #'
 #' @importFrom stats mad median
-#' @importFrom GenomicRanges GRanges findOverlaps
-#' @importFrom IRanges IRanges
 #' @export
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
                               reference_table, min_size) {
