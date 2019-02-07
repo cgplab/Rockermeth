@@ -35,14 +35,14 @@ by a tailored Heterogeneous Shifting Level Model based algorithm and samples sup
 
 First, we need to install the Rocker-meth R package, available at https://github.com/cgplab/ROCkerMeth
 
-```{r, eval = F}
+```{r, eval = FALSE}
 # install.packages("devtools")
 devtools::install_github("cgplab/ROCkerMeth")
 ```
 
 Once you have installed the package, you need to load it (with other useful packages)
 
-```{r message=F, warning=F, include=T}
+```{r message=FALSE, warning=FALSE}
 library(ROCkerMeth)
 ```
 
@@ -68,20 +68,21 @@ head(illumina450k_hg19)
 ## Identification of Differentially Methylated Sites (DMSs) by AUC
 Rocker-meth uses AUC statistics to identify DMSs. It implements a function (**compute_AUC**) able to perform parallel computing of the AUC for each site. This step takes a while. In case, you can increase *ncores* parameter to calculate AUCs faster).
 
-```{r message=F, warning=F, eval=FALSE}
+```{r message=FALSE, warning=FALSE, eval=FALSE}
 PRAD_auc <- compute_AUC(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
                         ncores = 2, na_threshold = 0)
 ```
 
-```{r message=F, warning=F, eval=TRUE}
+```{r message=FALSE, warning=FALSE}
 head(PRAD_auc)
 ```
 
 na_threshold refers to the fraction of samples permitted to be NA at a give site (no beta value available). By setting it to 0, we will calculate AUC only for those sites having complete data (i.e. available beta value for all tumor and normal samples).
 Now, you can look at the distribution of AUCs and visually estimate the fraction of hypo (AUC < 0.2) and hyper (AUC > 0.8) DMSs.
-```{r fig.cap="Histogram of AUC", fig.height=5, fig.width=6}
-auc_density <- density(PRAD_auc, bw = 0.2, from = 0, to = 1, na.rm = T)
-{plot(auc_density, frame.plot = F, col = "black", main = "", las = 1)
+
+```{r fig.height=5, fig.width=6}
+auc_density <- density(PRAD_auc, bw = 0.2, from = 0, to = 1, na.rm = TRUE)
+{plot(auc_density, main="Histogram of AUC", frame.plot = FALSE, col = "black", las = 1)
 abline (v = c(0.2, 0.8), col = c("blue", "red"), lty = 2)
 text(.1, max(auc_density$y*0.95), "hypo-methylation", cex = .8)
 text(.9, max(auc_density$y*0.95), "hyper-methylation", cex = .8)}
@@ -91,8 +92,8 @@ You can print and write a table reporting DMS analysis and related annotation:
 
 ```{r}
 ## calculate average beta value per site in both tumor (TP) and normal (NT) samples
-avg_beta_tp <- apply(PRAD_TP_subset, 1, mean, na.rm = T)
-avg_beta_nt <- apply(PRAD_NT_subset, 1, mean, na.rm = T)
+avg_beta_tp <- apply(PRAD_TP_subset, 1, mean, na.rm = TRUE)
+avg_beta_nt <- apply(PRAD_NT_subset, 1, mean, na.rm = TRUE)
 ## create a flag for differential methylation analysis
 dms_flag <- rep(NA, length(PRAD_auc))
 dms_flag[which(PRAD_auc > 0.8)] <- "hyper"
@@ -100,14 +101,14 @@ dms_flag[which(PRAD_auc < 0.2)] <- "hypo"
 ## create the table
 dms_table <- cbind(illumina450k_hg19, avg_beta_nt, avg_beta_tp, PRAD_auc, dms_flag)
 head(dms_table)
-#write.table(dms_table, file = "Table_DMS.txt", sep = "\t", row.names = F, quote = F)
+#write.table(dms_table, file = "Table_DMS.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 ```
 
 draw a plot like the following
 
-```{r, fig.cap="Beta difference VS AUC, (TP vs NT)", fig.height=5, fig.width=6}
+```{r,  fig.height=5, fig.width=6}
 cor_auc_betadiff <- cor(dms_table$PRAD_auc, (dms_table$avg_beta_tp-dms_table$avg_beta_nt), use = "na")
-{smoothScatter(dms_table$PRAD_auc, (dms_table$avg_beta_tp-dms_table$avg_beta_nt),
+{smoothScatter(dms_table$PRAD_auc, (dms_table$avg_beta_tp-dms_table$avg_beta_nt), main="Beta difference (TP vs NT) vs AUC ",
               xlab = "AUC", ylab = "Beta difference (TP vs NT)", las = 1, xlim = c(0, 1),
               ylim = c(-1, 1))
 text(0.05, .9, paste0("R=", format(cor_auc_betadiff, digits = 2) ))}
@@ -116,7 +117,7 @@ text(0.05, .9, paste0("R=", format(cor_auc_betadiff, digits = 2) ))}
 and order data by most significant differentially methylated sites
 
 ```{r}
-dms_table.srt <- dms_table[order(abs(dms_table$PRAD_auc-0.5), decreasing = T), ]
+dms_table.srt <- dms_table[order(abs(dms_table$PRAD_auc-0.5), decreasing = TRUE), ]
 head(dms_table.srt)
 ```
 
@@ -126,21 +127,21 @@ To identify Differentially Methylated Regions, Rocker-meth uses a strategy based
 ```{r message=FALSE, warning=FALSE}
 ## order CpG sites by genomic coordinates
 idx <- order(illumina450k_hg19$Chromosome, illumina450k_hg19$Genomic_Coordinate)
-PRAD_TP_subset <- PRAD_TP_subset[idx,]
-PRAD_NT_subset <- PRAD_NT_subset[idx,]
+PRAD_TP_subset.srt <- PRAD_TP_subset[idx,]
+PRAD_NT_subset.srt <- PRAD_NT_subset[idx,]
 PRAD_auc.srt <- PRAD_auc[idx]
-illumina450k_hg19 <- illumina450k_hg19[idx,]
+illumina450k_hg19.srt <- illumina450k_hg19[idx,]
 ## run segmentation of AUC
-dmr_table <- whole_genome_segmentator(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
-                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19[3:4])
+dmr_table <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
+                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4])
 head(dmr_table)
 ```
 
 You can draw a vulcano plot to identify significant DMRs (GSTP1 is highlighted)
 
-```{r fig.cap= "Volcano Plot", fig.height=5, fig.width=6}
-{plot(dmr_table$avg_beta_diff, -log10(dmr_table$q_value), log = "y", las = 1,
-     frame.plot = F, pch = 16, col = "grey",
+```{r  fig.height=5, fig.width=6}
+{plot(dmr_table$avg_beta_diff, -log10(dmr_table$q_value), main= "Volcano Plot", log = "y", las = 1,
+     frame.plot = FALSE, pch = 16, col = "grey",
      ylab = "-log10(FDR)", xlab = "Avg Beta difference (TP vs NT)", cex = .7)
 gstp1 <- which(dmr_table$chr == "11" & dmr_table$start < 67351000 & dmr_table$end > 67351000)
 points(dmr_table$avg_beta_diff[gstp1], -log10(dmr_table$q_value)[gstp1], pch = 16, cex = 1, col = "black")
@@ -151,12 +152,12 @@ abline(h = -log10(0.05), lty = 2)}
 Now you can perform single sample analysis by Z-score statistics (it takes a while)
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
-PRAD_sample_score <- compute_z_scores(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
-                                dmr_table = dmr_table, reference_table = illumina450k_hg19[3:4],
+PRAD_sample_score <- compute_z_scores(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
+                                dmr_table = dmr_table, reference_table = illumina450k_hg19.srt[3:4],
                                 min_size = 6)
 ```
 
-```{r message=FALSE, warning=FALSE, eval=TRUE}
+```{r message=FALSE, warning=FALSE}
 head(PRAD_sample_score$z_scores[, 1:5])
 ```
 
@@ -172,39 +173,38 @@ In our parameter study, we observed that our method is very sensible to changes 
 Here we will see how Rocker-meth results are affected by the parameter F from its standard value (0.4) to different values. 
 Based on our study, we expect that lowering F will increase specificity at the cost of sensitivity. The opposite situation occurs for larger values of F. 
 
-```{r message=FALSE, warning=FALSE}
+```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 
 ## run Rocker-meth in stringend mode, F = 0.2 (i.e., ratiosd)
-dmr_table_hi_specificity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
-                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19[3:4],
+dmr_table_hi_specificity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
+                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4],
                                       ratiosd = 0.2)
 ## run Rocker-meth in high sensitivity mode, F = 0.6 
-dmr_table_hi_sensitivity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
-                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19[3:4],
+dmr_table_hi_sensitivity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
+                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4],
                                       ratiosd = 0.6)
 dat_n_seg <- c(dim(dmr_table_hi_specificity)[1],
                dim(dmr_table)[1],
                dim(dmr_table_hi_sensitivity)[1])
-dat_n_seg
 names(dat_n_seg) <- c("hi spec (F=0.2)",
                       "standard (F=0.4)",
                       "hi sens (F=0.6)")
-barplot(dat_n_seg, border = NA, las = 1, ylab = "number of segments", beside = T)
+barplot(dat_n_seg, border = NA, las = 1, ylab = "number of segments", beside = TRUE)
 ```
 
 We can nicely demostrate that modulating F affects sensibility/sensitivity trade-off by looking at the distribution of p-values of DMRs in the three settings.
 
-```{r message=FALSE, warning=FALSE}
+```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 ## to make p-values comparable, we will focus on DMRs of <15 CpG sites in length
 
 nsites <- 15
-mybox <- list(-log10(dmr_table_hi_specificity$p_value[which(dmr_table_hi_specificity$nseg<nsites & dmr_table_hi_specificity$state != 2)]),
-              -log10(dmr_table$p_value[which(dmr_table$nseg<nsites & dmr_table$state != 2)]),
-              -log10(dmr_table_hi_sensitivity$p_value[which(dmr_table_hi_sensitivity$nseg<nsites & dmr_table_hi_sensitivity$state != 2)]))
+mybox <- list(-log10(dmr_table_hi_specificity$p_value[which(dmr_table_hi_specificity$nsites<nsites & dmr_table_hi_specificity$state != 2)]),
+              -log10(dmr_table$p_value[which(dmr_table$nsites<nsites & dmr_table$state != 2)]),
+              -log10(dmr_table_hi_sensitivity$p_value[which(dmr_table_hi_sensitivity$nsites<nsites & dmr_table_hi_sensitivity$state != 2)]))
 names(mybox) <- names(dat_n_seg)
 {
   par (mar = c(7.5, 4, 4, 2))
-  boxplot(mybox, varwidth = T, las = 2, ylab = "-log10(P-value)", frame.plot = F, pch = 19, cex = .6)
+  boxplot(mybox, varwidth = TRUE, las = 2, ylab = "-log10(P-value)", frame.plot = FALSE, pch = 19, cex = .6)
 }
 ```
 
@@ -214,7 +214,7 @@ names(mybox) <- names(dat_n_seg)
 Here we will see a strategy that can be used to identify DMRs specific to molecular subtypes. Also in this case
 we will consider the PRAD dataset. characterized by 8 molecular subytpes (TCGA-PRAD Consortium, Cell 2015).
 
-```{r message=FALSE, warning=FALSE, eval=TRUE}
+```{r message=FALSE, warning=FALSE}
 head (PRAD_molecular_subtypes)
 table(PRAD_molecular_subtypes$Subtype)
 ```
@@ -222,11 +222,11 @@ table(PRAD_molecular_subtypes$Subtype)
 Subtype specific DMRs can be identified as those showing different Z-score statistics across the different subtypes.
 First, we match methylation sample IDs with patient ID.
 
-```{r message=FALSE, warning=FALSE, eval=TRUE}
+```{r message=FALSE, warning=FALSE}
 subtypes <- names(table(PRAD_molecular_subtypes$Subtype))
-subtype_data <- rep(NA, ncol(PRAD_TP_subset))
+subtype_data <- rep(NA, ncol(PRAD_TP_subset.srt))
 for (subtype in subtypes) {
-  ix <- which(substr(colnames(PRAD_TP_subset), 1, 12) %in% PRAD_molecular_subtypes$PATIENT_ID[which(PRAD_molecular_subtypes$Subtype == subtype)])
+  ix <- which(substr(colnames(PRAD_TP_subset.srt), 1, 12) %in% PRAD_molecular_subtypes$PATIENT_ID[which(PRAD_molecular_subtypes$Subtype == subtype)])
   subtype_data[ix] <- subtype
 }
 ## subtypes in PRAD subset
@@ -235,7 +235,7 @@ table(subtype_data)
 
 A reasonable strategy to identify candidates subtype specific DMRs is by using one-way ANOVA test.
 
-```{r message=FALSE, warning=FALSE, eval=TRUE}
+```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 ## exclude DMRs with not estimated Z-score in all sample
 ## Attention: it can take a while
 anova.res <- rep(NA, nrow(PRAD_sample_score$z_scores))
@@ -250,7 +250,7 @@ hist(-log10(anova.res), 100)
 
 Finally, we can check if candidate subtype specific DMRs are actually specific of one (or more) subtype.
   
-```{r message=FALSE, warning=FALSE, eval=TRUE}
+```{r message=FALSE, warning=FALSE, fig.width=8, fig.height=6}
 ## how many DMRs with p < 1e-5
 j <- which(anova.res < 1e-5)
 anova.res[j]
@@ -259,11 +259,11 @@ anova.res[j]
   par (mfrow = c(2, 2))
   for (i in 1: 4) {
     mymax <- round(max(abs(PRAD_sample_score$z_scores[j[i], ]))/10)*10
-      boxplot(PRAD_sample_score$z_scores[j[i], ] ~ subtype_data, varwidth = T, outline = F, ylim = c(-mymax, mymax),
-        frame.plot = F, las = 2, ylab = "RockerSS (Z-score)",
+      boxplot(PRAD_sample_score$z_scores[j[i], ] ~ subtype_data, varwidth = TRUE, outline = FALSE, ylim = c(-mymax, mymax),
+        frame.plot = FALSE, las = 2, ylab = "RockerSS (Z-score)",
         main = rownames(PRAD_sample_score$z_scores[j, ])[i])
     stripchart(PRAD_sample_score$z_scores[j[i], ] ~ subtype_data, pch = 19, col = "grey60",
-           vertical = T, method = "jitter", add = T)
+           vertical = TRUE, method = "jitter", add = TRUE)
     grid()
     abline (h = 0, lty = 2)
 
