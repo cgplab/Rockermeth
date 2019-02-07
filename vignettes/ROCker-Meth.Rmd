@@ -4,7 +4,7 @@ author: "Matteo Benelli, Dario Romagnoli, Alberto Magi"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{ROCkerMeth}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -169,9 +169,9 @@ write_output(path = "~/PRAD.subset", dmr_table = dmr_table, sample_score = PRAD_
 
 ## Rocker-meth with different parameter settings
 
-In our parameter study, we observed that our method is very sensible to changes in F. F is the parameter used to split the total AUC signal variance in two parts: the variance of not differentially methylated state and the variance of differentially methylated states. 
-Here we will see how Rocker-meth results are affected by the parameter F from its standard value (0.4) to different values. 
-Based on our study, we expect that lowering F will increase specificity at the cost of sensitivity. The opposite situation occurs for larger values of F. 
+In our parameter study, we observed that our method is very sensible to changes in F. F is the parameter used to split the total AUC signal variance in two parts: the variance of not differentially methylated state and the variance of differentially methylated states.
+Here we will see how Rocker-meth results are affected by the parameter F from its standard value (0.4) to different values.
+Based on our study, we expect that lowering F will increase specificity at the cost of sensitivity. The opposite situation occurs for larger values of F.
 
 ```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 
@@ -179,7 +179,7 @@ Based on our study, we expect that lowering F will increase specificity at the c
 dmr_table_hi_specificity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
                                       auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4],
                                       ratiosd = 0.2)
-## run Rocker-meth in high sensitivity mode, F = 0.6 
+## run Rocker-meth in high sensitivity mode, F = 0.6
 dmr_table_hi_sensitivity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
                                       auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4],
                                       ratiosd = 0.6)
@@ -249,7 +249,7 @@ hist(-log10(anova.res), 100)
 ```
 
 Finally, we can check if candidate subtype specific DMRs are actually specific of one (or more) subtype.
-  
+
 ```{r message=FALSE, warning=FALSE, fig.width=8, fig.height=6}
 ## how many DMRs with p < 1e-5
 j <- which(anova.res < 1e-5)
