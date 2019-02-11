@@ -34,20 +34,15 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 
   # select rows by NAs
   message(sprintf("[%s] Filter NA rows", Sys.time()))
-  tumor_NAs <- apply(beta_table[,sample_state], 1, function(x) {
-    sum(is.na(x))
-  })/sum(sample_state) <= na_threshold
-  control_NAs <- apply(beta_table[,!sample_state], 1, function(x) {
-    sum(is.na(x))
-  })/sum(!sample_state) <= na_threshold
+  tumor_below_na_threshold <- apply(beta_table[,sample_state], 1, function(x) { sum(is.na(x)) })/sum(sample_state) <= na_threshold
+  control_below_na_threshold <- apply(beta_table[,!sample_state], 1, function(x) { sum(is.na(x)) })/sum(!sample_state) <= na_threshold
 
-  NAs_idx <- which(tumor_NAs & control_NAs)
+  below_threshold_idx <- which(tumor_below_na_threshold & control_below_na_threshold)
 
   auc <- rep(NA_real_, nrow(beta_table))
   message(sprintf("[%s] Compute AUC", Sys.time()))
   cl <- parallel::makeCluster(ncores)
-  auc[NAs_idx] <- parallel::parApply(cl, beta_table[NAs_idx,], 1,
-                                     single_AUC, states = sample_state)
+  auc[below_threshold_idx] <- parallel::parApply(cl, beta_table[below_threshold_idx,], 1, single_AUC, states = sample_state)
   parallel::stopCluster(cl)
   message(sprintf("[%s] Done",  Sys.time()))
   return(auc)
@@ -56,7 +51,6 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 #' Compute AUC a single vector
 #'
 #' Use Wilcoxon method to compute AUC.
-#' Return NA if NA samples are more than threshold
 #'
 #' @param scores integer vector (range 1-100)
 #' @param states logical vector (class labels)
