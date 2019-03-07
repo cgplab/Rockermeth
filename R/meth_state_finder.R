@@ -20,16 +20,17 @@
 #' values.
 #' @param mu Expected mean (AUC) for hypo-methylated state (1-mu is the
 #' expected mean for hyper-methylated state).
+#' @param use_trunc Use truncated normal distribution (DEBUGGING
+#' ONLY).
 #' @return An integer vector of methylation states.
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
-                              pt_start, normdist, ratiosd, mu) {
+                              pt_start, normdist, ratiosd, mu, use_trunc) {
   assertthat::assert_that(all(!is.na(input_signal)))
   assertthat::assert_that(is.numeric(input_signal))
   assertthat::assert_that(length(input_signal) == length(input_pos))
 
   input_pos <- as.integer(input_pos)
-  length_cutoff <- as.integer(length_cutoff)
 
   # 2nd state is fixed (no diff methylation)
   muk <- c(mu, .5, 1-mu)
@@ -42,6 +43,15 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   CovDist1 <- log(1 - exp(-CovDist))
   W <- length(input_signal)
   NCov <- length(CovDist)
+  if (use_trunc) {
+    TruncCoef <- c(
+        pnorm(1, mean = muk[1], sd = sepsilon[1])-pnorm(0, mean = muk[1], sd = sepsilon[1]),
+        pnorm(1, mean = muk[2], sd = sepsilon[2])-pnorm(0, mean = muk[2], sd = sepsilon[2]),
+        pnorm(1, mean = muk[3], sd = sepsilon[3])-pnorm(0, mean = muk[3], sd = sepsilon[3]))
+  } else  {
+    TruncCoef <- rep(1, 3)
+  }
+
   PT <- log(rep(pt_start, KS))
   P <- matrix(data = 0, nrow = KS, ncol = (KS * NCov))
   emission <- matrix(data = 0, nrow = KS, ncol = W)
@@ -50,7 +60,7 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   out <- .Fortran("transemisi", as.vector(muk), as.integer(NCov),
                   as.vector(input_signal), as.integer(KS), as.vector(CovDist1),
                   as.vector(sepsilon), as.integer(W), as.matrix(PT), as.matrix(P),
-                  as.matrix(emission))
+                  as.matrix(emission), as.vector(TruncCoef))
   P <- out[[9]]
   emission <- out[[10]]
 

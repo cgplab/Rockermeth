@@ -6,7 +6,7 @@
 \usage{
 whole_genome_segmentator(tumor_table, control_table, auc_vector,
   reference_table, length_cutoff = 5, pt_start = 0.05,
-  normdist = 100000, ratiosd = 0.4, mu = 0.25)
+  normdist = 100000, ratiosd = 0.4, mu = 0.25, use_trunc = TRUE)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}
@@ -32,6 +32,9 @@ values. Default is 0.4.}
 
 \item{mu}{Expected mean (AUC) for hypo-methylated state (1-mu is the
 expected mean for hyper-methylated state). Default is 0.25.}
+
+\item{use_trunc}{Use truncated normal distribution (DEBUGGING ONLY).
+Default is TRUE.}
 }
 \value{
 A data.frame reporting genomic location, number of CpG sites,

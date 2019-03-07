@@ -17,6 +17,8 @@
 #' values. Default is 0.4.
 #' @param mu Expected mean (AUC) for hypo-methylated state (1-mu is the
 #' expected mean for hyper-methylated state). Default is 0.25.
+#' @param use_trunc Use truncated normal distribution (DEBUGGING ONLY).
+#' Default is TRUE.
 #' @return A data.frame reporting genomic location, number of CpG sites,
 #' methylation state, average beta difference (tumor vs. control), p-value and
 #' adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
@@ -24,13 +26,16 @@
 #' @export
 whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   reference_table, length_cutoff = 5, pt_start = 0.05, normdist = 1e5,
-  ratiosd = 0.4, mu = .25){
+  ratiosd = 0.4, mu = .25, use_trunc = TRUE){
   # check parameters
+  assertthat::assert_that(is.numeric(length_cutoff))
   assertthat::assert_that(ratiosd > 0, ratiosd < 1)
   assertthat::assert_that(normdist > 1)
   assertthat::assert_that(pt_start > 0, pt_start < 1)
   assertthat::assert_that(mu >= 0, mu <= .35)
+  assertthat::assert_that(is.logical(use_trunc))
 
+  length_cutoff <- as.integer(round(length_cutoff))
   tumor_table <- as.matrix(tumor_table)
   control_table <- as.matrix(control_table)
   diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
@@ -76,7 +81,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
     # 1) compute methylation states (1,2,3)
     meth_states <- meth_state_finder(auc_vector[idx_chr],
       reference_table[[2]][idx_chr], auc_sd, length_cutoff, pt_start, normdist,
-      ratiosd, mu)
+      ratiosd, mu, use_trunc)
 
     # 2) find segments
     single_chr_segs <- segmentator(meth_states, tumor_beta_mean[idx_chr],

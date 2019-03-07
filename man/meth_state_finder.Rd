@@ -5,7 +5,7 @@
 \title{Mixture Coefficient Estimation}
 \usage{
 meth_state_finder(input_signal, input_pos, auc_sd, length_cutoff, pt_start,
-  normdist, ratiosd, mu)
+  normdist, ratiosd, mu, use_trunc)
 }
 \arguments{
 \item{input_signal}{A numeric vector of AUC scores.}
@@ -27,6 +27,9 @@ values.}
 
 \item{mu}{Expected mean (AUC) for hypo-methylated state (1-mu is the
 expected mean for hyper-methylated state).}
+
+\item{use_trunc}{Use truncated normal distribution (DEBUGGING
+ONLY).}
 }
 \value{
 An integer vector of methylation states.

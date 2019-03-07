@@ -41,7 +41,7 @@ test_that("meth_state_finder works", {
   y <- reference_toy_table[[2]][idx_chr]
   idx_not_NA <- which(!is.na(x))
   meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5,
-    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.1)
+    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.1, use_trunc=FALSE)
   table(meth_states)
   expect_equal(as.numeric(table(meth_states)), c(349, 27595))
 })
@@ -54,7 +54,7 @@ test_that("segmentator returns correct table", {
   y <- reference_toy_table[[2]][idx_chr]
   idx_not_NA <- which(!is.na(x))
   meth_states <- meth_state_finder(x[idx_not_NA], y[idx_not_NA], auc_sd, 5,
-    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.25)
+    pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu=.25, use_trunc=FALSE)
 
   tumor_toy_beta_mean <- apply(tumor_toy_table[idx_chr,], 1, mean, na.rm = TRUE)
   normal_beta_mean <- apply(control_toy_table[idx_chr,], 1, mean, na.rm = TRUE)
