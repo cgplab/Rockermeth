@@ -39,7 +39,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   assertthat::assert_that(all(names(dmr_table) == names_of_dmr_table))
 
   # check chromosome names
-  assertthat::assert_that(all(reference_table[[1]] %in% dmr_table$chr))
+  assertthat::assert_that(any(reference_table[[1]] %in% dmr_table$chr))
 
   # compute z-scores
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
