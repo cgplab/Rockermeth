@@ -7,7 +7,7 @@ Authors@R: c(
     person("Matteo", "Benelli", role = "aut"),
     person("Alberto", "Magi", role = "aut"))
 Description: A tool to discover differentially methylated regions (DMR)
-Depends: R (>= 3.4.3)
+Depends: R (>= 3.4.2)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
