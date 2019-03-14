@@ -1,14 +1,14 @@
 #' Define Differentially Methylated Regions
 #'
-#' Given a set of methylation states produced by [meth_states_finder] and a set of
-#' methylation (beta) values differences between tumor and control samples, this fucntion
-#' defines stretches of equal states (segments).
+#' Given a set of methylation states produced by [meth_states_finder] and a set
+#' of methylation (beta) values differences between tumor and control samples,
+#' this function defines stretches of equal states (segments).
 #'
-#' @param meth_states a vector of methylation states (1, 2, 3, NA)
-#' @param tumor_beta_mean a vector of average methylation (beta) values
-#' @param control_beta_mean a vector of average methylation (beta) values
+#' @param meth_states A vector of methylation states (1, 2, 3, NA).
+#' @param tumor_beta_mean A vector of average methylation (beta) values.
+#' @param control_beta_mean A vector of average methylation (beta) values.
 #'
-#' @return a data.frame with information about segments
+#' @return A data.frame with information about segments.
 #' @export
 #' @keywords internal
 segmentator <- function(meth_states, tumor_beta_mean, control_beta_mean){
@@ -36,5 +36,5 @@ segmentator <- function(meth_states, tumor_beta_mean, control_beta_mean){
         error = function(e) NA))
     }
   }
-  return(data.frame(nseg = rle_length, state = rle_value, values))
+  return(data.frame(nsites = rle_length, state = rle_value, values))
 }

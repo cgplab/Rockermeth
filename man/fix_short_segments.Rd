@@ -7,9 +7,12 @@
 fix_short_segments(meth_states, cutoff)
 }
 \arguments{
-\item{meth_states}{An integer vector of methylation states}
+\item{meth_states}{An integer vector of methylation states.}
 
-\item{cutoff}{Length cutoff: longer segments will be ignored}
+\item{cutoff}{Length cutoff: longer segments will be ignored.}
+}
+\value{
+A "fixed" vector of methylation states.
 }
 \description{
 Given a vector of methylation states, this function sets any hyper-(3) or

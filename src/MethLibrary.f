@@ -1,13 +1,13 @@
        SUBROUTINE BIOVITERBII(ETAV,P,EMISSION,T,KTILDE,PATH,PSI)
-       
+
        IMPLICIT NONE
        INTEGER T,KTILDE,IND,PATH(T),PSI(KTILDE,T),I,J,K,COUNTP
        DOUBLE PRECISION NORM,NORM1,NUMMAX
        DOUBLE PRECISION ETAV(KTILDE),EMISSION(KTILDE,T)
        DOUBLE PRECISION P(KTILDE,KTILDE),DELTA(KTILDE,T)
        DOUBLE PRECISION NDELTA(KTILDE,T),PDELTA(KTILDE,T)
-       
-       
+
+
        DO 202 I=1,KTILDE
           DELTA(I,1)=ETAV(I)+EMISSION(I,1)
           PSI(I,1)=0
@@ -30,7 +30,7 @@
  213      CONTINUE
           COUNTP=COUNTP+KTILDE
  203   CONTINUE
-       
+
        NUMMAX=0.0
        NUMMAX=DELTA(1,T)
        IND=1
@@ -40,17 +40,17 @@
              IND=K
            ENDIF
  253   CONTINUE
-       
+
        PATH(T)=IND
        DO 263 K=T-1,1,-1
           PATH(K)=PSI(PATH(K+1),K+1)
  263   CONTINUE
 
        RETURN
-       END 
-	
+       END
+
        SUBROUTINE TRANSEMISI(MUK,NCOV,TOTALSEQ,KS,
-     c COV,SEPSILON,T,PT,P,EMISSION)
+     c COV,SEPSILON,T,PT,P,EMISSION,TRUNCCOEF)
 
        IMPLICIT NONE
 
@@ -59,18 +59,18 @@
        DOUBLE PRECISION P(KS,KS*NCOV)
        DOUBLE PRECISION EMISSION(KS,T)
        DOUBLE PRECISION MUK(KS),PT(KS)
-       DOUBLE PRECISION TOTALSEQ(T)
+       DOUBLE PRECISION TOTALSEQ(T),TRUNCCOEF(KS)
        DOUBLE PRECISION SEPSILON(KS)
-       PARAMETER(PI=3.14159265358979)       
+       PARAMETER(PI=3.14159265358979)
 
        COUNTP=0
        DO 700 I=1,NCOV
            DO 710 J=1,KS
                DO 720 K=1,KS
                    IF (J.EQ.K) THEN
-                   P(J,(K+COUNTP))=ELNSUB(0.,(PT(K)+COV(I)))
+                   P(J,(K+COUNTP))=ELNSUB(0.0D0,(PT(K)+COV(I)))
                    ELSE
-                   P(J,(K+COUNTP))=PT(K)+COV(I)
+                   P(J,(K+COUNTP))=PT(K)+COV(I)-0.6931472
                    ENDIF
  720           CONTINUE
  710       CONTINUE
@@ -82,19 +82,19 @@
        DO 730 J=1,KS
           DO 740 K=1,T
               EMISSION(J,K)=EMISSION(J,K)+LOG(1/
-     c        (SQRT(2*PI)*SEPSILON(J)))+(-0.5*((TOTALSEQ(K)-
-     c        MUK(J))/(SEPSILON(J)))**2)
+     c        (SQRT(2*PI)*SEPSILON(J)*TRUNCCOEF(J)))+(-0.5*
+     c         ((TOTALSEQ(K)-MUK(J))/(SEPSILON(J)))**2)
  740      CONTINUE
  730   CONTINUE
        RETURN
-       END 
+       END
 
 
 
 
 
       DOUBLE PRECISION FUNCTION ELNSUM(X,Y)
-	  
+
       IMPLICIT NONE
       DOUBLE PRECISION X,Y
       IF (X.GT.Y) THEN
@@ -108,7 +108,7 @@
 
 
       DOUBLE PRECISION FUNCTION ELNSUB(X,Y)
-	  
+
       IMPLICIT NONE
       DOUBLE PRECISION X,Y
       IF (X.GT.Y) THEN

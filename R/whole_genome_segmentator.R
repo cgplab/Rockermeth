@@ -1,6 +1,6 @@
 #' Find Differentially Methylated Regions across whole genome
 #'
-#' A function to define DMR for an entire genome
+#' A function to define DMR for an entire genome.
 #'
 #' @param tumor_table A matrix of beta-values (percentage) from tumor samples.
 #' @param control_table A matrix of beta-values (percentage) from
@@ -15,29 +15,33 @@
 #' @param ratiosd Fraction between the standard deviation of AUC values of
 #' differentially methylated sites and the total standard deviation of AUC
 #' values. Default is 0.4.
-#'
+#' @param mu Expected mean (AUC) for hypo-methylated state (1-mu is the
+#' expected mean for hyper-methylated state). Default is 0.25.
+#' @param use_trunc Use truncated normal distribution (DEBUGGING ONLY).
+#' Default is TRUE.
+#' @return A data.frame reporting genomic location, number of CpG sites,
+#' methylation state, average beta difference (tumor vs. control), p-value and
+#' adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
 whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   reference_table, length_cutoff = 5, pt_start = 0.05, normdist = 1e5,
-  ratiosd = 0.4){
+  ratiosd = 0.4, mu = .25, use_trunc = TRUE){
   # check parameters
-  if (length(ratiosd) != 1 | ratiosd <= 0 | ratiosd >= 1 ) {
-    stop("ratiosd must be between 0 and 1")
-  }
-  if (length(normdist) != 1 | normdist < 1) {
-    stop("normdist must be an integer between 1 and Inf. Suggested value is 1e5.")
-  }
-  if (length(pt_start) != 1 | pt_start <= 0 | pt_start >= 1 ) {
-    stop("pt_start must be between 0 and 1")
-  }
+  assertthat::assert_that(is.numeric(length_cutoff))
+  assertthat::assert_that(ratiosd > 0, ratiosd < 1)
+  assertthat::assert_that(normdist > 1)
+  assertthat::assert_that(pt_start > 0, pt_start < 1)
+  assertthat::assert_that(mu >= 0, mu <= .35)
+  assertthat::assert_that(is.logical(use_trunc))
+
+  length_cutoff <- as.integer(round(length_cutoff))
   tumor_table <- as.matrix(tumor_table)
   control_table <- as.matrix(control_table)
   diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
   diff_range_c <- diff(range(control_table, na.rm = TRUE))
-  if (diff_range_t <= 1 || diff_range_t > 100 ||
-      diff_range_c <= 1 || diff_range_c > 100) {
-    stop(paste0("For computation efficiency, please convert tumor and control",
+  if (any(diff_range_t <= 1, diff_range_t > 100, diff_range_c <= 1, diff_range_c > 100)) {
+    stop(paste("For computation efficiency, please convert tumor and control",
         "tables to percentage value."))
   } else {
     tumor_table <- round(tumor_table)
@@ -47,10 +51,8 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   }
   assertthat::assert_that(is.data.frame(reference_table))
   assertthat::assert_that(length(reference_table) >= 2)
-  if (nrow(tumor_table) != nrow(control_table) ||
-      nrow(tumor_table) != nrow(reference_table)) {
-    stop("Tumor and control tables must have as many rows as reference_table.")
-  }
+  assertthat::assert_that(nrow(tumor_table) == nrow(control_table),
+                          nrow(tumor_table) == nrow(reference_table))
 
   # remove NA rows
   idx_not_NA <- which(!is.na(auc_vector))
@@ -79,13 +81,13 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
     # 1) compute methylation states (1,2,3)
     meth_states <- meth_state_finder(auc_vector[idx_chr],
       reference_table[[2]][idx_chr], auc_sd, length_cutoff, pt_start, normdist,
-      ratiosd)
+      ratiosd, mu, use_trunc)
 
     # 2) find segments
     single_chr_segs <- segmentator(meth_states, tumor_beta_mean[idx_chr],
       control_beta_mean[idx_chr])
 
-    meth_states <- with(single_chr_segs, rep(state, nseg))
+    meth_states <- with(single_chr_segs, rep(state, nsites))
     rle_states <- S4Vectors::Rle(meth_states)
     rle_start <- S4Vectors::start(rle_states)
     rle_end <- S4Vectors::end(rle_states)
