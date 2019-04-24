@@ -75,5 +75,6 @@ meth_state_finder <- function(input_signal, input_pos, auc_sd, length_cutoff,
   meth_states <- out2[[6]]
 
   # fix output: set short segments to 2, reinsert NAs, correct NAs
-  return(fix_short_segments(meth_states, cutoff = length_cutoff))
+  fixed_states <- fix_short_segments(meth_states, cutoff = length_cutoff)
+  return(fixed_states)
 }
