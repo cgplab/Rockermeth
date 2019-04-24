@@ -21,15 +21,11 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
   na_threshold <- as.numeric(na_threshold)
   assertthat::assert_that(na_threshold >= 0, na_threshold < 1)
 
+  assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
   beta_table <- as.matrix(cbind(tumor_table, control_table))
   diff_range <- diff(range(beta_table, na.rm = TRUE))
-  if (diff_range <= 1 || diff_range > 100) {
-    stop(paste("For computation efficiency convert tumor and control",
-               "tables to percentage values."))
-  } else {
-    beta_table <- round(beta_table)
-    storage.mode(beta_table) <- "integer"
-  }
+  assertthat::assert_that(diff_range > 1, diff_range <= 100, msg = "For computation efficiency, convert tumor table to percentage values.")
+
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
 
   # select rows by NAs
