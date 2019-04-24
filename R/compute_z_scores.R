@@ -18,22 +18,13 @@
 #' @importFrom stats mad median
 #' @export
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
-                              reference_table, min_size) {
-  # check parameters
-  beta_table <- as.matrix(cbind(tumor_table, control_table))
-  diff_range <- diff(range(beta_table, na.rm = TRUE))
-  if (diff_range <= 1 || diff_range > 100) {
-    stop(paste("For computation efficiency please convert tumor and control",
-               "tables to percentage value."))
-  } else {
-    beta_table <- round(beta_table)
-    storage.mode(beta_table) <- "integer"
-  }
+                             reference_table, min_size) {
 
+  # check parameters
   assertthat::assert_that(is.data.frame(reference_table))
   assertthat::assert_that(length(reference_table) >= 2)
-  assertthat::assert_that(nrow(tumor_table) == nrow(control_table),
-                          nrow(tumor_table) == nrow(reference_table))
+  assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
+  assertthat::assert_that(nrow(tumor_table) == nrow(reference_table))
   assertthat::assert_that(is.data.frame(dmr_table))
   names_of_dmr_table <- c('chr', 'start', 'end', 'nsites', 'state', 'avg_beta_diff', 'p_value', 'q_value')
   assertthat::assert_that(all(names(dmr_table) == names_of_dmr_table))
@@ -41,6 +32,12 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   # check chromosome names
   assertthat::assert_that(length(intersect(reference_table[[1]], dmr_table$chr)) > 0,
       msg="No shared chromosomes between 'reference_table' and 'dmr_table.' Check chromosome names.")
+
+  beta_table <- as.matrix(cbind(tumor_table, control_table))
+  diff_range <- diff(range(beta_table, na.rm = TRUE))
+  assertthat::assert_that(diff_range > 1, diff_range <= 100, msg = "For computation efficiency, convert tumor table to percentage values.")
+  beta_table <- round(beta_table)
+  storage.mode(beta_table) <- "integer"
 
   # compute z-scores
   sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
@@ -85,8 +82,11 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   message(sprintf("DMRs without any probe: %i", dmr_without_signal))
   message(sprintf("DMRs without enough probes: %i ", insuff_segs))
   message(sprintf("[%s] Computing z-scores", Sys.time()))
-  z_scores <-
-    (tumor_dmr_beta-apply(control_dmr_beta, 1, median, na.rm=TRUE)) / apply(control_dmr_beta, 1, mad, na.rm=TRUE)
+
+  control_median <- apply(control_dmr_beta, 1, median, na.rm=TRUE)
+  control_median_abs_dev <- apply(control_dmr_beta, 1, mad, na.rm=TRUE)
+  control_median_abs_dev[dplyr::between(control_median, 0, 1)] <- 1
+  z_scores <- (tumor_dmr_beta - control_median) / control_median_abs_dev
 
   rnames <- with(dmr_table, sprintf("chr%s:%s-%s", chr, start, end))
 
@@ -95,6 +95,8 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
   dimnames(na_frac)          <- list(rnames, colnames(beta_table)[sample_state])
 
-  return(list(z_scores = z_scores, tumor_dmr_beta = tumor_dmr_beta,
-              control_dmr_beta = control_dmr_beta, na_frac = na_frac))
+  return(list(z_scores = z_scores,
+              tumor_dmr_beta = tumor_dmr_beta,
+              control_dmr_beta = control_dmr_beta,
+              na_frac = na_frac))
 }
