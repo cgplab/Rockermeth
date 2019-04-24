@@ -5,8 +5,9 @@
 \title{Find Differentially Methylated Regions across whole genome}
 \usage{
 whole_genome_segmentator(tumor_table, control_table, auc_vector,
-  reference_table, length_cutoff = 5, pt_start = 0.05,
-  normdist = 100000, ratiosd = 0.4, mu = 0.25, use_trunc = TRUE)
+  reference_table, max_distance = Inf, length_cutoff = 5,
+  pt_start = 0.05, normdist = 100000, ratiosd = 0.4, mu = 0.25,
+  use_trunc = TRUE)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}
@@ -18,6 +19,8 @@ normal/control samples.}
 
 \item{reference_table}{A data.frame reporting the location of CpG sites
 (chromosome and genomic_position).}
+
+\item{max_distance}{Maximum distance between sites within same DMRs.}
 
 \item{length_cutoff}{An integer to remove streches of differential
 methylation shorter than cutoff.}

@@ -4,17 +4,22 @@
 \alias{segmentator}
 \title{Define Differentially Methylated Regions}
 \usage{
-segmentator(meth_states, tumor_beta_mean, control_beta_mean)
+segmentator(tumor_beta_mean, control_beta_mean, meth_states, coordinates,
+  max_dist)
 }
 \arguments{
-\item{meth_states}{A vector of methylation states (1, 2, 3, NA).}
-
 \item{tumor_beta_mean}{A vector of average methylation (beta) values.}
 
 \item{control_beta_mean}{A vector of average methylation (beta) values.}
+
+\item{meth_states}{A vector of methylation states (1, 2, 3, NA).}
+
+\item{coordinates}{Ordered genomic positions of methylation sites}
+
+\item{max_dist}{Maximum distance between sites within same DMRs}
 }
 \value{
-A data.frame with information about segments.
+A data.frame with information about DMRs
 }
 \description{
 Given a set of methylation states produced by [meth_states_finder] and a set
