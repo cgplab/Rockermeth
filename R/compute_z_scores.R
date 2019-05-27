@@ -85,7 +85,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
 
   control_median <- apply(control_dmr_beta, 1, median, na.rm=TRUE)
   control_median_abs_dev <- apply(control_dmr_beta, 1, mad, na.rm=TRUE)
-  control_median_abs_dev[dplyr::between(control_median, 0, 1)] <- 1
+  control_median_abs_dev[dplyr::between(control_median_abs_dev, 0, 1)] <- 1
   z_scores <- (tumor_dmr_beta - control_median) / control_median_abs_dev
 
   rnames <- with(dmr_table, sprintf("chr%s:%s-%s", chr, start, end))
