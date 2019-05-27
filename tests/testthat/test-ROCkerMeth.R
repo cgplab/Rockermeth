@@ -12,7 +12,7 @@ test_that("single_AUC returns correct values", {
   auc <- single_AUC(c(a, b), c(rep(TRUE, length(a)), rep(FALSE, length(b))))
   expect_equal(auc, 1)
   auc <- single_AUC(c(tumor_toy_table[1,], control_toy_table[1,]),
-    state=c(rep(TRUE, ncol(tumor_toy_table)), rep(FALSE, ncol(control_toy_table))))
+    c(rep(TRUE, ncol(tumor_toy_table)), rep(FALSE, ncol(control_toy_table))))
   expect_is(auc, "numeric")
 })
 
