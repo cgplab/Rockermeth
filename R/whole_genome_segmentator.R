@@ -68,6 +68,7 @@ whole_genome_segmentator <- function(tumor_table, control_table, auc_vector,
   reference_table <- reference_table[idx, ]
   tumor_table <- tumor_table[idx, ]
   control_table <- control_table[idx, ]
+  auc_vector <- auc_vector[idx]
 
   tumor_beta_mean <- apply(tumor_table, 1, mean, na.rm = TRUE)
   control_beta_mean <- apply(control_table, 1, mean, na.rm = TRUE)
