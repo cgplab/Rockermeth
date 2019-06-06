@@ -2,9 +2,9 @@
 
 export(compute_AUC)
 export(compute_z_scores)
+export(find_dmrs)
 export(meth_state_finder)
 export(segmentator)
-export(whole_genome_segmentator)
 export(write_output)
 importFrom(dplyr,"%>%")
 importFrom(stats,mad)

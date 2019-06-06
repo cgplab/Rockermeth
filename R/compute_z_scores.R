@@ -57,7 +57,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
 
   insuff_segs <- 0
   message(sprintf("[%s] Computing DMR median beta", Sys.time()))
-  pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3)
+  pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3, width=80)
   for (idx in dmr_idxs) {
     if (sum(overlaps$subjectHits == idx) >= min_size) {
       idx_dmr <- overlaps$queryHits[overlaps$subjectHits == idx]

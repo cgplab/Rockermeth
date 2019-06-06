@@ -1,7 +1,7 @@
 Package: ROCkerMeth
 Title: Receiver Operating Characteristic curve analyzER of DNA METHylation data
-Version: 0.0.22.9000
-Date: 2019-05-30
+Version: 0.0.23.9000
+Date: 2019-06-06
 Authors@R: c(
     person("Dario", "Romagnoli", role = "cre", email = "dario.romagnoli87@gmail.com"),
     person("Matteo", "Benelli", role = "aut"),
@@ -13,7 +13,6 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     parallel,
-    S4Vectors,
     tidyr,
     dplyr,
     assertthat,

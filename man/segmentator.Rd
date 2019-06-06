@@ -5,7 +5,7 @@
 \title{Define Differentially Methylated Regions}
 \usage{
 segmentator(tumor_beta_mean, control_beta_mean, meth_states, coordinates,
-  max_dist)
+  max_dist, min_sites)
 }
 \arguments{
 \item{tumor_beta_mean}{A vector of average methylation (beta) values.}
@@ -16,7 +16,9 @@ segmentator(tumor_beta_mean, control_beta_mean, meth_states, coordinates,
 
 \item{coordinates}{Ordered genomic positions of methylation sites}
 
-\item{max_dist}{Maximum distance between sites within same DMRs}
+\item{max_dist}{Maximum distance between two contiguous sites in a DMR.}
+
+\item{min_sites}{Minimum of number of sites to consider a DMR valid.}
 }
 \value{
 A data.frame with information about DMRs
