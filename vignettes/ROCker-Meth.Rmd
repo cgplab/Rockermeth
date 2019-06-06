@@ -16,8 +16,8 @@ Methylation data) tool consists of four main modules:
    characteristic (ROC) Curve analysis of methylation levels (i.e., beta
    values) in tumor versus normal samples (**compute_AUC**)
 
-2. segmentation of AUC values by a tailored Heterogeneous Shifting Level Model
-   (HSLM) (**find_dmrs**);
+2. segmentation of AUC values by a tailored Hidden Markov Model
+   (HMM) (**find_dmrs**);
 
 3. estimation of the statistical significance of AUC segments by
    Wilcoxon-Mann-Whitney (WMW) test on beta values of tumor versus normal
@@ -31,7 +31,7 @@ to visually inspect discovered DMR using a genome browser.
 # ROCker-Meth Tutorial
 The following tutorial describes the use of Rocker-meth to identify
 Differentially Methylated Sites (DMSs) with AUC statistics, Differentially Methylated Regions (DMRs)
-by a tailored Heterogeneous Shifting Level Model based algorithm and samples supporting DMRs.
+by a tailored Heterogeneous Hidden Markov Model based algorithm and samples supporting DMRs.
 
 First, we need to install the Rocker-meth R package, available at https://github.com/cgplab/ROCkerMeth
 
@@ -129,9 +129,9 @@ dms_table.srt <- dms_table[order(abs(dms_table$PRAD_auc-0.5), decreasing = TRUE)
 head(dms_table.srt)
 ```
 
-## Identification of Differentially Methylated Regions (DMRs) by HSLM
+## Identification of Differentially Methylated Regions (DMRs) by HMM
 To identify Differentially Methylated Regions, Rocker-meth uses a strategy
-based on a Heterogeneous Shifting Level Model that segments AUC scores to
+based on a Heterogeneous Hidden Markov Model that segments AUC scores to
 classify sites in stretches of hyper-methylation, no differential methylation
 or hypo-methylation. To do that, we will use the **find_dmrs**
 function.
