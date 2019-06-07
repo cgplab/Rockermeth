@@ -58,7 +58,8 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
   insuff_segs <- 0
   message(sprintf("[%s] Computing DMR median beta", Sys.time()))
   pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3, width=80)
-  for (idx in dmr_idxs) {
+  for (i in seq_along(dmr_idxs)) {
+    idx <- dmr_idxs[i]
     if (sum(overlaps$subjectHits == idx) >= min_size) {
       idx_dmr <- overlaps$queryHits[overlaps$subjectHits == idx]
       tumor_dmr_beta[idx,] <-
@@ -71,11 +72,11 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     } else {
       insuff_segs <- insuff_segs + 1
     }
-    if (idx %% 100 == 0){
-      setTxtProgressBar(pb, idx)
+    if (i %% 100 == 0){
+      setTxtProgressBar(pb, i)
     }
   }
-  setTxtProgressBar(pb, idx)
+  setTxtProgressBar(pb, i)
   close(pb)
 
   dmr_without_signal <- nrow(dmr_table) - length(dmr_idxs)
