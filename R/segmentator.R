@@ -67,14 +67,15 @@ segmentator <- function(tumor_beta_mean, control_beta_mean, meth_states, coordin
 
   values <- matrix(NA, nrow = nrow(dmrs), ncol = 2,
                    dimnames = list(NULL, c("avg_beta_diff", "p_value")))
-
   dmrs_idx <- with(dmrs, which(nsites >= min_sites & state != 2))
   start_idx <- c(1, cumsum(dmrs$nsites)[-nrow(dmrs)]+1)
   end_idx   <- cumsum(dmrs$nsites)
   message("Total regions: ", nrow(dmrs))
   message("Total DMRs: ", sum(dmrs$state != 2))
   message("Valid DMRs: ", length(dmrs_idx))
-  pb <- txtProgressBar(min = 0, max = length(dmrs_idx), style = 3, width=80)
+  if (length(dmrs_idx) > 0) {
+    pb <- txtProgressBar(min = 0, max = length(dmrs_idx), style = 3, width = 80)
+  }
   for (p in seq_along(dmrs_idx)) {
     i <- dmrs_idx[p]
     values[i, 1] <- with(dmrs, mean(beta_diff[start_idx[i]:end_idx[i]], na.rm = TRUE))
@@ -86,8 +87,9 @@ segmentator <- function(tumor_beta_mean, control_beta_mean, meth_states, coordin
                              hypothesis)[["p.value"]])))
     setTxtProgressBar(pb, p)
   }
-  setTxtProgressBar(pb, p)
-  close(pb)
+  if (length(dmrs_idx) > 0) {
+    close(pb)
+  }
   dmrs <- dplyr::bind_cols(dmrs, dplyr::as_tibble(values))
   return(dmrs)
 }
