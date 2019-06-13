@@ -19,6 +19,11 @@ normal/control samples.}
 \item{reference_table}{A data.frame reporting the location of CpG sites
 (chromosome and genomic_position).}
 
+\item{max_distance}{Maximum distance between sites within same DMRs.
+Splits long DMRs (default to Inf: no split).}
+
+\item{min_sites}{Minimum required number of sites in a region (default to 5).}
+
 \item{pt_start}{Transition probability of the HSLM. Default is 0.05.}
 
 \item{normdist}{Distance normalization parameter of the HSLM. Default is 1e5.}
@@ -32,12 +37,6 @@ expected mean for hyper-methylated state). Default is 0.25.}
 
 \item{use_trunc}{Use truncated normal distribution (DEBUGGING ONLY).
 Default is TRUE.}
-
-\item{min_siites}{Maximum distance between sites within same DMRs.
-Splits long DMRs.}
-
-\item{min_size}{An integer to remove streches of differential
-methylation shorter than cutoff.}
 }
 \value{
 A data.frame reporting genomic location, number of CpG sites,

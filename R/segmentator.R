@@ -13,6 +13,7 @@
 #'
 #' @return A data.frame with information about DMRs
 #' @export
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @keywords internal
 segmentator <- function(tumor_beta_mean, control_beta_mean, meth_states, coordinates, max_dist, min_sites){
   assertthat::assert_that(length(tumor_beta_mean) == length(control_beta_mean))

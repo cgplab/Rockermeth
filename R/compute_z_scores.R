@@ -7,7 +7,7 @@
 #' @param tumor_table A matrix of beta-values (fraction) from tumor samples.
 #' @param control_table A matrix of beta-values (fraction) from normal/control samples.
 #' @param dmr_table A data.frame reporting the genomic location of DMRs
-#' (chromosome, start, end) (likely produced by [whole_genome_segmentator]).
+#' (chromosome, start, end) (likely produced by [find_dmrs]).
 #' @param reference_table A data.frame reporting the genomic coordinates of
 #' each CpG site in tumor and control matrices.
 #' @param min_size Minimum number of CpG sites inside DMR to compute Z-score
@@ -17,6 +17,7 @@
 #' NA CpG sites within DMRs.
 #'
 #' @importFrom stats mad median
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
                              reference_table, min_size=3) {

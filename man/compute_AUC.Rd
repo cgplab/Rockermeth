@@ -25,5 +25,5 @@ segregation between tumor and control samples accordingly to their
 methylation (beta) values.
 }
 \examples{
-auc_data <- compute_AUC(tumor_toy_data, control_toy_data)
+auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
 }

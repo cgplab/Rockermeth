@@ -11,7 +11,7 @@
 #' control samples) above which a site will not be selected (default=0).
 #' @return A vector of AUC scores.
 #' @examples
-#' auc_data <- compute_AUC(tumor_toy_data, control_toy_data)
+#' auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
 #' @export
 compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0) {
   message(sprintf("[%s] # Compute AUC #", Sys.time()))

@@ -13,7 +13,7 @@ compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
 \item{control_table}{A matrix of beta-values (fraction) from normal/control samples.}
 
 \item{dmr_table}{A data.frame reporting the genomic location of DMRs
-(chromosome, start, end) (likely produced by [whole_genome_segmentator]).}
+(chromosome, start, end) (likely produced by [find_dmrs]).}
 
 \item{reference_table}{A data.frame reporting the genomic coordinates of
 each CpG site in tumor and control matrices.}
