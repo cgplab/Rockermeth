@@ -5,7 +5,7 @@
 \title{Find Differentially Methylated Regions across whole genome}
 \usage{
 find_dmrs(tumor_table, control_table, auc_vector, reference_table,
-  max_distance = Inf, min_sites = 5, pt_start = 0.05,
+  max_distance = 50000000, min_sites = 5, pt_start = 0.05,
   normdist = 100000, ratiosd = 0.4, mu = 0.25, use_trunc = TRUE)
 }
 \arguments{
@@ -20,7 +20,7 @@ normal/control samples.}
 (chromosome and genomic_position).}
 
 \item{max_distance}{Maximum distance between sites within same DMRs.
-Splits long DMRs (default to Inf: no split).}
+Splits long DMRs (default to 50e6).}
 
 \item{min_sites}{Minimum required number of sites in a region (default to 5).}
 

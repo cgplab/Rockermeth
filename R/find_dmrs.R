@@ -9,7 +9,7 @@
 #' @param reference_table A data.frame reporting the location of CpG sites
 #' (chromosome and genomic_position).
 #' @param max_distance Maximum distance between sites within same DMRs.
-#' Splits long DMRs (default to Inf: no split).
+#' Splits long DMRs (default to 50e6).
 #' @param min_sites Minimum required number of sites in a region (default to 5).
 #' @param pt_start Transition probability of the HSLM. Default is 0.05.
 #' @param normdist Distance normalization parameter of the HSLM. Default is 1e5.
@@ -26,7 +26,7 @@
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
 find_dmrs <- function(tumor_table, control_table, auc_vector,
-  reference_table, max_distance = Inf, min_sites = 5, pt_start = 0.05,
+  reference_table, max_distance = 50e6, min_sites = 5, pt_start = 0.05,
   normdist = 1e5, ratiosd = 0.4, mu = .25, use_trunc = TRUE){
 
   # check parameters
