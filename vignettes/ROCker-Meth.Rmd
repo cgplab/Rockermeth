@@ -16,8 +16,8 @@ Methylation data) tool consists of four main modules:
    characteristic (ROC) Curve analysis of methylation levels (i.e., beta
    values) in tumor versus normal samples (**compute_AUC**)
 
-2. segmentation of AUC values by a tailored Heterogeneous Shifting Level Model
-   (HSLM) (**whole_genome_segmentator**);
+2. segmentation of AUC values by a tailored Hidden Markov Model
+   (HMM) (**find_dmrs**);
 
 3. estimation of the statistical significance of AUC segments by
    Wilcoxon-Mann-Whitney (WMW) test on beta values of tumor versus normal
@@ -25,13 +25,13 @@ Methylation data) tool consists of four main modules:
 
 4. identification of sample specific DMRs by Z-score statistics (**compute_z_scores**).
 
-The package include also a fuction (**write_bed**) to easily produce a bed file
+The package include also a fuction (**write_output**) to easily produce a bed file
 to visually inspect discovered DMR using a genome browser.
 
 # ROCker-Meth Tutorial
 The following tutorial describes the use of Rocker-meth to identify
 Differentially Methylated Sites (DMSs) with AUC statistics, Differentially Methylated Regions (DMRs)
-by a tailored Heterogeneous Shifting Level Model based algorithm and samples supporting DMRs.
+by a tailored Heterogeneous Hidden Markov Model based algorithm and samples supporting DMRs.
 
 First, we need to install the Rocker-meth R package, available at https://github.com/cgplab/ROCkerMeth
 
@@ -46,7 +46,6 @@ Once you have installed the package, you need to load it (with other useful pack
 library(ROCkerMeth)
 ```
 
-
 ## Prepare the data
 
 You need to properly prepare DNA methylation data. Required data include:
@@ -57,7 +56,10 @@ You need to properly prepare DNA methylation data. Required data include:
 
 3. Data frame reporting chromosomal and genomic position of each CpG site.
 
-As an example, we will use a subset of the Prostate Adenocarcinoma dataset from TCGA (PRAD). To to the fact that we will use only 20 TP and 10 NT samples, results are markedly different with respect to the original dataset. Subset data have been already prepared and available from the ROCkerMeth package.
+As an example, we will use a subset of the Prostate Adenocarcinoma dataset from
+TCGA (PRAD). To to the fact that we will use only 20 TP and 10 NT samples,
+results are markedly different with respect to the original dataset. Subset
+data have been already prepared and available from the ROCkerMeth package.
 
 ```{r}
 head(PRAD_TP_subset[, 1:5])
@@ -66,7 +68,10 @@ head(illumina450k_hg19)
 ```
 
 ## Identification of Differentially Methylated Sites (DMSs) by AUC
-Rocker-meth uses AUC statistics to identify DMSs. It implements a function (**compute_AUC**) able to perform parallel computing of the AUC for each site. This step takes a while. In case, you can increase *ncores* parameter to calculate AUCs faster).
+Rocker-meth uses AUC statistics to identify DMSs. It implements a function
+(**compute_AUC**) able to perform parallel computing of the AUC for each site.
+This step takes a while. In case, you can increase *ncores* parameter to
+calculate AUCs faster).
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
 PRAD_auc <- compute_AUC(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
@@ -77,8 +82,11 @@ PRAD_auc <- compute_AUC(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_su
 head(PRAD_auc)
 ```
 
-na_threshold refers to the fraction of samples permitted to be NA at a give site (no beta value available). By setting it to 0, we will calculate AUC only for those sites having complete data (i.e. available beta value for all tumor and normal samples).
-Now, you can look at the distribution of AUCs and visually estimate the fraction of hypo (AUC < 0.2) and hyper (AUC > 0.8) DMSs.
+`na_threshold` refers to the fraction of samples permitted to be NA at a give
+site (no beta value available). By setting it to 0, we will calculate AUC only
+for those sites having complete data (i.e. available beta value for all tumor
+and normal samples).  Now, you can look at the distribution of AUCs and
+visually estimate the fraction of hypo (AUC < 0.2) and hyper (AUC > 0.8) DMSs.
 
 ```{r fig.height=5, fig.width=6}
 auc_density <- density(PRAD_auc, bw = 0.2, from = 0, to = 1, na.rm = TRUE)
@@ -121,19 +129,20 @@ dms_table.srt <- dms_table[order(abs(dms_table$PRAD_auc-0.5), decreasing = TRUE)
 head(dms_table.srt)
 ```
 
-## Identification of Differentially Methylated Regions (DMRs) by HSLM
-To identify Differentially Methylated Regions, Rocker-meth uses a strategy based on a Heterogeneous Shifting Level Model that segments AUC scores to classify sites in stretches of hyper-methylation, no differential methylation or hypo-methylation. To do that, we will use the **whole_genome_segmentator** function.
+## Identification of Differentially Methylated Regions (DMRs) by HMM
+To identify Differentially Methylated Regions, Rocker-meth uses a strategy
+based on a Heterogeneous Hidden Markov Model that segments AUC scores to
+classify sites in stretches of hyper-methylation, no differential methylation
+or hypo-methylation. To do that, we will use the **find_dmrs**
+function.
 
-```{r message=FALSE, warning=FALSE}
-## order CpG sites by genomic coordinates
-idx <- order(illumina450k_hg19$Chromosome, illumina450k_hg19$Genomic_Coordinate)
-PRAD_TP_subset.srt <- PRAD_TP_subset[idx,]
-PRAD_NT_subset.srt <- PRAD_NT_subset[idx,]
-PRAD_auc.srt <- PRAD_auc[idx]
-illumina450k_hg19.srt <- illumina450k_hg19[idx,]
+```{r include=FALSE}
 ## run segmentation of AUC
-dmr_table <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
-                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4])
+dmr_table <- find_dmrs(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
+                                      auc_vector = PRAD_auc, reference_table = illumina450k_hg19[3:4])
+```
+
+```{r}
 head(dmr_table)
 ```
 
@@ -152,8 +161,8 @@ abline(h = -log10(0.05), lty = 2)}
 Now you can perform single sample analysis by Z-score statistics (it takes a while)
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
-PRAD_sample_score <- compute_z_scores(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
-                                dmr_table = dmr_table, reference_table = illumina450k_hg19.srt[3:4],
+PRAD_sample_score <- compute_z_scores(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
+                                dmr_table = dmr_table, reference_table = illumina450k_hg19[3:4],
                                 min_size = 6)
 ```
 
@@ -161,7 +170,8 @@ PRAD_sample_score <- compute_z_scores(tumor_table = PRAD_TP_subset.srt, control_
 head(PRAD_sample_score$z_scores[, 1:5])
 ```
 
-Finally, the table of DMRs and sample scores can be written in a bed or a seg file to be viewed with genomic browser, such as IGV.
+Finally, the table of DMRs and sample scores can be written in a bed or a seg
+file to be viewed with genomic browser, such as IGV.
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
 write_output(path = "~/PRAD.subset", dmr_table = dmr_table, sample_score = PRAD_sample_score)
@@ -169,19 +179,22 @@ write_output(path = "~/PRAD.subset", dmr_table = dmr_table, sample_score = PRAD_
 
 ## Rocker-meth with different parameter settings
 
-In our parameter study, we observed that our method is very sensible to changes in F. F is the parameter used to split the total AUC signal variance in two parts: the variance of not differentially methylated state and the variance of differentially methylated states.
-Here we will see how Rocker-meth results are affected by the parameter F from its standard value (0.4) to different values.
-Based on our study, we expect that lowering F will increase specificity at the cost of sensitivity. The opposite situation occurs for larger values of F.
+In our parameter study, we observed that our method is very sensible to changes
+in F. F is the parameter used to split the total AUC signal variance in two
+parts: the variance of not differentially methylated state and the variance of
+differentially methylated states.  Here we will see how Rocker-meth results are
+affected by the parameter F from its standard value (0.4) to different values.
+Based on our study, we expect that lowering F will increase specificity at the
+cost of sensitivity. The opposite situation occurs for larger values of F.
 
-```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
-
+```{r include=FALSE}
 ## run Rocker-meth in stringend mode, F = 0.2 (i.e., ratiosd)
-dmr_table_hi_specificity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
-                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4],
+dmr_table_hi_specificity <- find_dmrs(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
+                                      auc_vector = PRAD_auc, reference_table = illumina450k_hg19[3:4],
                                       ratiosd = 0.2)
 ## run Rocker-meth in high sensitivity mode, F = 0.6
-dmr_table_hi_sensitivity <- whole_genome_segmentator(tumor_table = PRAD_TP_subset.srt, control_table = PRAD_NT_subset.srt,
-                                      auc_vector = PRAD_auc.srt, reference_table = illumina450k_hg19.srt[3:4],
+dmr_table_hi_sensitivity <- find_dmrs(tumor_table = PRAD_TP_subset, control_table = PRAD_NT_subset,
+                                      auc_vector = PRAD_auc, reference_table = illumina450k_hg19[3:4],
                                       ratiosd = 0.6)
 dat_n_seg <- c(dim(dmr_table_hi_specificity)[1],
                dim(dmr_table)[1],
@@ -189,10 +202,14 @@ dat_n_seg <- c(dim(dmr_table_hi_specificity)[1],
 names(dat_n_seg) <- c("hi spec (F=0.2)",
                       "standard (F=0.4)",
                       "hi sens (F=0.6)")
+```
+```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 barplot(dat_n_seg, border = NA, las = 1, ylab = "number of segments", beside = TRUE)
 ```
 
-We can nicely demostrate that modulating F affects sensibility/sensitivity trade-off by looking at the distribution of p-values of DMRs in the three settings.
+We can nicely demostrate that modulating F affects sensibility/sensitivity
+trade-off by looking at the distribution of p-values of DMRs in the three
+settings.
 
 ```{r fig.height=5, fig.width=6, message=FALSE, warning=FALSE}
 ## to make p-values comparable, we will focus on DMRs of <15 CpG sites in length
@@ -211,22 +228,24 @@ names(mybox) <- names(dat_n_seg)
 
 ## Identify candidate subtype specific DMRs
 
-Here we will see a strategy that can be used to identify DMRs specific to molecular subtypes. Also in this case
-we will consider the PRAD dataset. characterized by 8 molecular subytpes (TCGA-PRAD Consortium, Cell 2015).
+Here we will see a strategy that can be used to identify DMRs specific to
+molecular subtypes. Also in this case we will consider the PRAD dataset.
+characterized by 8 molecular subytpes (TCGA-PRAD Consortium, Cell 2015).
 
 ```{r message=FALSE, warning=FALSE}
 head (PRAD_molecular_subtypes)
 table(PRAD_molecular_subtypes$Subtype)
 ```
 
-Subtype specific DMRs can be identified as those showing different Z-score statistics across the different subtypes.
-First, we match methylation sample IDs with patient ID.
+Subtype specific DMRs can be identified as those showing different Z-score
+statistics across the different subtypes.  First, we match methylation sample
+IDs with patient ID.
 
 ```{r message=FALSE, warning=FALSE}
 subtypes <- names(table(PRAD_molecular_subtypes$Subtype))
-subtype_data <- rep(NA, ncol(PRAD_TP_subset.srt))
+subtype_data <- rep(NA, ncol(PRAD_TP_subset))
 for (subtype in subtypes) {
-  ix <- which(substr(colnames(PRAD_TP_subset.srt), 1, 12) %in% PRAD_molecular_subtypes$PATIENT_ID[which(PRAD_molecular_subtypes$Subtype == subtype)])
+  ix <- which(substr(colnames(PRAD_TP_subset), 1, 12) %in% PRAD_molecular_subtypes$PATIENT_ID[which(PRAD_molecular_subtypes$Subtype == subtype)])
   subtype_data[ix] <- subtype
 }
 ## subtypes in PRAD subset
@@ -271,7 +290,10 @@ anova.res[j]
 }
 ```
 
-In these boxplots, we see that the first case and third case (left) show DMRs with pronounced hyper-methylation in ERG and SPOP subtypes, second and fourth cases (right) show DMRs that are clearly hypo-methylated in FOXA1 subtype and not in the other subtypes.
+In these boxplots, we see that the first case and third case (left) show DMRs
+with pronounced hyper-methylation in ERG and SPOP subtypes, second and fourth
+cases (right) show DMRs that are clearly hypo-methylated in FOXA1 subtype and
+not in the other subtypes.
 
 
 ## Additonal info, code and data
