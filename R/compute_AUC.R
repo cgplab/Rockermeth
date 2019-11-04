@@ -9,11 +9,13 @@
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @param na_threshold Fraction of NAs (considered independently in tumor and
 #' control samples) above which a site will not be selected (default=0).
+#' @param simplify If TRUE (default) return a vector else compute all AUC and return a data.frame
+#' reporting fraction of NAs in tumor and control tables.
 #' @return A vector of AUC scores.
 #' @examples
 #' auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
 #' @export
-compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0) {
+compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0, simplify=TRUE) {
   message(sprintf("[%s] # Compute AUC #", Sys.time()))
   # check parameters
   ncores <- as.integer(ncores)
@@ -35,18 +37,24 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 
   is_tumor <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
 
-  # select rows by NAs
-  message(sprintf("[%s] Selecting sites with fraction of NAs \u2264 %.2f...", Sys.time(), na_threshold))
-  tumor_valid_sites <- rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor) <= na_threshold
-  control_valid_sites <- rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor) <= na_threshold
-  valid_sites <- which(tumor_valid_sites & control_valid_sites)
-
-  message(sprintf("[%s] Computing...", Sys.time()))
-  auc <- rep(NA_real_, nrow(beta_table))
   cl <- parallel::makeCluster(ncores)
-  auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
-  parallel::stopCluster(cl)
+  if (isTRUE(simplify)){
+      # select rows by NAs
+      message(sprintf("[%s] Selecting sites with fraction of NAs \u2264 %.2f...", Sys.time(), na_threshold))
+      tumor_valid_sites <- rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor) <= na_threshold
+      control_valid_sites <- rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor) <= na_threshold
+      valid_sites <- which(tumor_valid_sites & control_valid_sites)
 
+      message(sprintf("[%s] Computing...", Sys.time()))
+      auc <- setNames(rep(NA_real_, nrow(beta_table)), rownames(beta_table))
+      auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
+
+  } else {
+      auc <- data.frame(auc = parallel::parApply(cl, beta_table, 1, single_AUC, is_tumor = is_tumor),
+                        tumor_NA_frac = rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor),
+                        control_NA_frac = rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor))
+  }
+  parallel::stopCluster(cl)
   message(sprintf("[%s] Done",  Sys.time()))
   return(auc)
 }

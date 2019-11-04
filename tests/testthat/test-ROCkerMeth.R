@@ -18,10 +18,11 @@ test_that("single_AUC returns correct values", {
 
 test_that("compute_AUC works", {
   expect_error(compute_AUC(1, 1, 100), "ncores not less")
-  expect_error(compute_AUC(tumor_toy_table/100, control_toy_table/100),
-    "For computation efficiency")
-  expect_is(compute_AUC(head(tumor_toy_table, 10), head(control_toy_table, 10)),
-      "numeric")
+  expect_error(compute_AUC(tumor_toy_table/100, control_toy_table/100), "For computation efficiency")
+  auc <- compute_AUC(head(tumor_toy_table, 10), head(control_toy_table, 10))
+  expect_is(auc, "numeric")
+  auc <- compute_AUC(head(tumor_toy_table, 10), head(control_toy_table, 10), simplify = FALSE)
+  expect_is(auc, "data.frame")
 })
 
 context("meth_state_finder") ##################################################
