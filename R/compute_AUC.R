@@ -19,8 +19,6 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
   message(sprintf("[%s] # Compute AUC #", Sys.time()))
   # check parameters
   ncores <- as.integer(ncores)
-  system_cores <- parallel::detectCores()
-  assertthat::assert_that(ncores < system_cores)
 
   na_threshold <- as.numeric(na_threshold)
   assertthat::assert_that(na_threshold >= 0, na_threshold < 1)
@@ -37,7 +35,7 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 
   is_tumor <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
 
-  cl <- parallel::makeCluster(ncores)
+  future::plan(future::multiprocess)
   if (isTRUE(simplify)){
       # select rows by NAs
       message(sprintf("[%s] Selecting sites with fraction of NAs \u2264 %.2f...", Sys.time(), na_threshold))
@@ -47,14 +45,13 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 
       message(sprintf("[%s] Computing...", Sys.time()))
       auc <- setNames(rep(NA_real_, nrow(beta_table)), rownames(beta_table))
-      auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
+      auc[valid_sites] <- future.apply::future_apply(beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
 
   } else {
-      auc <- data.frame(auc = parallel::parApply(cl, beta_table, 1, single_AUC, is_tumor = is_tumor),
+      auc <- data.frame(auc = future.apply::future_apply(beta_table, 1, single_AUC, is_tumor = is_tumor),
                         tumor_NA_frac = rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor),
                         control_NA_frac = rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor))
   }
-  parallel::stopCluster(cl)
   message(sprintf("[%s] Done",  Sys.time()))
   return(auc)
 }

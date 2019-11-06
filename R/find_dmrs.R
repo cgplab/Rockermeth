@@ -56,6 +56,7 @@ find_dmrs <- function(tumor_table, control_table, auc_vector,
   storage.mode(control_table) <- "integer"
 
   # remove NA rows
+  message("Skipping sites with no AUC score...")
   idx_not_NA <- which(!is.na(auc_vector))
   tumor_table <- tumor_table[idx_not_NA,, drop = FALSE]
   control_table <- control_table[idx_not_NA,, drop = FALSE]
@@ -63,14 +64,17 @@ find_dmrs <- function(tumor_table, control_table, auc_vector,
   reference_table <- reference_table[idx_not_NA,, drop = FALSE]
 
   # sort data
+  message("Checking order of reference table...")
   idx <- order(reference_table[[1]], reference_table[[2]])
   reference_table <- reference_table[idx, ]
   tumor_table <- tumor_table[idx, ]
   control_table <- control_table[idx, ]
   auc_vector <- auc_vector[idx]
 
-  tumor_beta_mean <- apply(tumor_table, 1, mean, na.rm = TRUE)
-  control_beta_mean <- apply(control_table, 1, mean, na.rm = TRUE)
+  message("Computing mean beta per site...")
+  future::plan(future::multiprocess)
+  tumor_beta_mean <- future.apply::future_apply(tumor_table, 1, mean, na.rm = TRUE)
+  control_beta_mean <- future.apply::future_apply(control_table, 1, mean, na.rm = TRUE)
   mean_beta_diff <- tumor_beta_mean - control_beta_mean
   auc_sd <- sd(auc_vector, na.rm = TRUE)
 
