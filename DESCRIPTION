@@ -18,7 +18,7 @@ Imports:
     GenomicRanges,
     IRanges,
     tibble,
-    future.apply
+    parallel
 Suggests: knitr,
     rmarkdown,
     testthat
