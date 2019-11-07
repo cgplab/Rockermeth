@@ -31,92 +31,92 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
                       max_distance = 50e6, min_sites = 5, pt_start = 0.05,
                       normdist = 1e5, ratiosd = 0.4, mu = .25, use_trunc = TRUE){
 
-  # check parameters
-  ncores <- as.integer(ncores)
-  use_trunc <- as.logical(use_trunc)
-  reference_table <- as.data.frame(reference_table)
-  min_sites <- as.integer(min_sites)
-  tumor_table <- as.matrix(tumor_table)
-  control_table <- as.matrix(control_table)
-  system_cores <- parallel::detectCores()
+    # check parameters
+    ncores <- as.integer(ncores)
+    use_trunc <- as.logical(use_trunc)
+    reference_table <- as.data.frame(reference_table)
+    min_sites <- as.integer(min_sites)
+    tumor_table <- as.matrix(tumor_table)
+    control_table <- as.matrix(control_table)
+    system_cores <- parallel::detectCores()
 
-  assertthat::assert_that(ncores < system_cores)
-  assertthat::assert_that(ratiosd > 0, ratiosd < 1)
-  assertthat::assert_that(normdist > 1)
-  assertthat::assert_that(pt_start > 0, pt_start < 1)
-  assertthat::assert_that(mu >= 0, mu <= .35)
+    assertthat::assert_that(ncores < system_cores)
+    assertthat::assert_that(ratiosd > 0, ratiosd < 1)
+    assertthat::assert_that(normdist > 1)
+    assertthat::assert_that(pt_start > 0, pt_start < 1)
+    assertthat::assert_that(mu >= 0, mu <= .35)
 
-  assertthat::assert_that(ncol(reference_table) >= 2)
-  assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
-  assertthat::assert_that(nrow(tumor_table) == nrow(reference_table))
-  assertthat::assert_that(nrow(tumor_table) == length(auc_vector))
+    assertthat::assert_that(ncol(reference_table) >= 2)
+    assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
+    assertthat::assert_that(nrow(tumor_table) == nrow(reference_table))
+    assertthat::assert_that(nrow(tumor_table) == length(auc_vector))
 
-  diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
-  diff_range_c <- diff(range(control_table, na.rm = TRUE))
-  assertthat::assert_that(diff_range_t > 1, diff_range_t <= 100, msg = "For computation efficiency, convert tumor table to percentage values.")
-  assertthat::assert_that(diff_range_c > 1, diff_range_c <= 100, msg = "For computation efficiency, convert control table to percentage values.")
+    diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
+    diff_range_c <- diff(range(control_table, na.rm = TRUE))
+    assertthat::assert_that(diff_range_t > 1, diff_range_t <= 100, msg = "For computation efficiency, convert tumor table to percentage values.")
+    assertthat::assert_that(diff_range_c > 1, diff_range_c <= 100, msg = "For computation efficiency, convert control table to percentage values.")
 
-  tumor_table <- round(tumor_table)
-  control_table <- round(control_table)
-  storage.mode(tumor_table) <- "integer"
-  storage.mode(control_table) <- "integer"
+    tumor_table <- round(tumor_table)
+    control_table <- round(control_table)
+    storage.mode(tumor_table) <- "integer"
+    storage.mode(control_table) <- "integer"
 
-  # remove NA rows
-  message("Skipping sites with no AUC score...")
-  idx_not_NA <- which(!is.na(auc_vector))
-  tumor_table <- tumor_table[idx_not_NA,, drop = FALSE]
-  control_table <- control_table[idx_not_NA,, drop = FALSE]
-  auc_vector <- auc_vector[idx_not_NA]
-  reference_table <- reference_table[idx_not_NA,, drop = FALSE]
+    # remove NA rows
+    message("Skipping sites with no AUC score...")
+    idx_not_NA <- which(!is.na(auc_vector))
+    tumor_table <- tumor_table[idx_not_NA,, drop = FALSE]
+    control_table <- control_table[idx_not_NA,, drop = FALSE]
+    auc_vector <- auc_vector[idx_not_NA]
+    reference_table <- reference_table[idx_not_NA,, drop = FALSE]
 
-  # sort data
-  message("Checking order of reference table...")
-  idx <- order(reference_table[[1]], reference_table[[2]])
-  reference_table <- reference_table[idx, ]
-  tumor_table <- tumor_table[idx, ]
-  control_table <- control_table[idx, ]
-  auc_vector <- auc_vector[idx]
+    # sort data
+    message("Checking order of reference table...")
+    idx <- order(reference_table[[1]], reference_table[[2]])
+    reference_table <- reference_table[idx, ]
+    tumor_table <- tumor_table[idx, ]
+    control_table <- control_table[idx, ]
+    auc_vector <- auc_vector[idx]
 
-  message("Computing mean beta per site...")
-  cl <- parallel::makeCluster(ncores)
-  tumor_beta_mean <-   parallel::parApply(cl, tumor_table, 1, mean, na.rm = TRUE)
-  control_beta_mean <- parallel::parApply(cl, control_table, 1, mean, na.rm = TRUE)
-  parallel::stopCluster(cl)
-  mean_beta_diff <- tumor_beta_mean - control_beta_mean
-  auc_sd <- sd(auc_vector, na.rm = TRUE)
+    message("Computing mean beta per site...")
+    cl <- parallel::makeCluster(ncores)
+    tumor_beta_mean <-   parallel::parApply(cl, tumor_table, 1, mean, na.rm = TRUE)
+    control_beta_mean <- parallel::parApply(cl, control_table, 1, mean, na.rm = TRUE)
+    parallel::stopCluster(cl)
+    mean_beta_diff <- tumor_beta_mean - control_beta_mean
+    auc_sd <- sd(auc_vector, na.rm = TRUE)
 
-  chromosomes <- as.character(unique(reference_table[[1]]))
-  all_dmrs <- vector("list", length(chromosomes))
-  n <- 1
-  for (n in seq_along(chromosomes)) {
-    chr <- chromosomes[n]
-    idx_chr <- which(reference_table[[1]] == chr)
-    message("Processing chromosome ", chr)
+    chromosomes <- as.character(unique(reference_table[[1]]))
+    all_dmrs <- vector("list", length(chromosomes))
+    n <- 1
+    for (n in seq_along(chromosomes)) {
+        chr <- chromosomes[n]
+        idx_chr <- which(reference_table[[1]] == chr)
+        message("Processing chromosome ", chr)
 
-    t_beta_mean_subset <- tumor_beta_mean[idx_chr]
-    c_beta_mean_subset <- control_beta_mean[idx_chr]
-    mean_beta_diff_subset <- mean_beta_diff[idx_chr]
-    auc_subset <- auc_vector[idx_chr]
-    coordinates <- reference_table[[2]][idx_chr]
+        t_beta_mean_subset <- tumor_beta_mean[idx_chr]
+        c_beta_mean_subset <- control_beta_mean[idx_chr]
+        mean_beta_diff_subset <- mean_beta_diff[idx_chr]
+        auc_subset <- auc_vector[idx_chr]
+        coordinates <- reference_table[[2]][idx_chr]
 
-    # 1) compute methylation states (1,2,3)
-    message("Compute methylation states")
-    meth_states <- meth_state_finder(auc_subset, coordinates, auc_sd, pt_start,
-                                     normdist, ratiosd, mu, use_trunc)
+        # 1) compute methylation states (1,2,3)
+        message("Compute methylation states")
+        meth_states <- meth_state_finder(auc_subset, coordinates, auc_sd, pt_start,
+                                         normdist, ratiosd, mu, use_trunc)
 
-    # 2) find segments
-    message("Find segments")
-    dmrs <- segmentator(t_beta_mean_subset,
-                        c_beta_mean_subset,
-                        meth_states,
-                        coordinates,
-                        max_distance,
-                        min_sites)
+        # 2) find segments
+        message("Find segments")
+        dmrs <- segmentator(t_beta_mean_subset,
+                            c_beta_mean_subset,
+                            meth_states,
+                            coordinates,
+                            max_distance,
+                            min_sites)
 
-    all_dmrs[[n]] <- tibble::add_column(dmrs, chr=chr, .before="start")
-  }
-  all_dmrs <- dplyr::bind_rows(all_dmrs)
-  all_dmrs$q_value <- p.adjust(all_dmrs$p_value, "fdr")
-  return(all_dmrs)
+        all_dmrs[[n]] <- tibble::add_column(dmrs, chr=chr, .before="start")
+    }
+    all_dmrs <- dplyr::bind_rows(all_dmrs)
+    all_dmrs$q_value <- p.adjust(all_dmrs$p_value, "fdr")
+    return(all_dmrs)
 }
 

@@ -27,53 +27,53 @@
 #' @importFrom dplyr %>%
 #' @export
 write_output <- function(path, dmr_table, sample_score = NULL, qvalue_thr = 0.05){
-  # check parameters
-  if (missing(path)) {
-    stop("Provide a path to write BED and/or SEG files.")
-  }
-  assertthat::assert_that(is.data.frame(dmr_table))
-  if (!is.null(sample_score)){
-    assertthat::assert_that(is.list(sample_score))
-  }
-  qvalue_thr <- as.numeric(qvalue_thr)
-  assertthat::assert_that(!is.na(qvalue_thr))
-  assertthat::assert_that(qvalue_thr > 0, qvalue_thr <= 1)
+    # check parameters
+    if (missing(path)) {
+        stop("Provide a path to write BED and/or SEG files.")
+    }
+    assertthat::assert_that(is.data.frame(dmr_table))
+    if (!is.null(sample_score)){
+        assertthat::assert_that(is.list(sample_score))
+    }
+    qvalue_thr <- as.numeric(qvalue_thr)
+    assertthat::assert_that(!is.na(qvalue_thr))
+    assertthat::assert_that(qvalue_thr > 0, qvalue_thr <= 1)
 
-  idx_dmr <- which(dmr_table$q_value < qvalue_thr)
-  if (length(idx_dmr) == 0){
-    warning("No DMR with significant q-value retrieved, hence no output produced.")
-    return(NULL)
-  }
+    idx_dmr <- which(dmr_table$q_value < qvalue_thr)
+    if (length(idx_dmr) == 0){
+        warning("No DMR with significant q-value retrieved, hence no output produced.")
+        return(NULL)
+    }
 
-  # write bed files
-  idx_names <- c("chr", "start", "end", "nsites", "q_value")
-  idx_hyper <- which(dmr_table$state[idx_dmr] == 3)
-  idx_hypo  <- which(dmr_table$state[idx_dmr] == 1)
-  out_table_bed <- dmr_table[idx_dmr, idx_names]
-  out_table_bed$start <- out_table_bed$start - 1
-  out_table_bed$end <- out_table_bed$end - 1
-  out_table_bed$q_value <- -log10(out_table_bed$q_value)
-  write.table(out_table_bed[idx_hyper, ],
-              file = paste0(path.expand(path), "_hyper.bed"),
-              sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
-  write.table(out_table_bed[idx_hypo, ],
-              file = paste0(path.expand(path), "_hypo.bed"),
-              sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+    # write bed files
+    idx_names <- c("chr", "start", "end", "nsites", "q_value")
+    idx_hyper <- which(dmr_table$state[idx_dmr] == 3)
+    idx_hypo  <- which(dmr_table$state[idx_dmr] == 1)
+    out_table_bed <- dmr_table[idx_dmr, idx_names]
+    out_table_bed$start <- out_table_bed$start - 1
+    out_table_bed$end <- out_table_bed$end - 1
+    out_table_bed$q_value <- -log10(out_table_bed$q_value)
+    write.table(out_table_bed[idx_hyper, ],
+                file = paste0(path.expand(path), "_hyper.bed"),
+                sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+    write.table(out_table_bed[idx_hypo, ],
+                file = paste0(path.expand(path), "_hypo.bed"),
+                sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
 
-  # write seg files
-  idx_names <- c("chr", "start", "end", "nsites", "avg_beta_diff")
-  out_table_seg <- dmr_table[idx_dmr, idx_names]
-  out_table_seg <- data.frame(ID = basename(path), out_table_seg)
-  write.table(out_table_seg, paste0(path.expand(path), ".seg"), sep = "\t",
-    quote = FALSE, row.names = FALSE)
+    # write seg files
+    idx_names <- c("chr", "start", "end", "nsites", "avg_beta_diff")
+    out_table_seg <- dmr_table[idx_dmr, idx_names]
+    out_table_seg <- data.frame(ID = basename(path), out_table_seg)
+    write.table(out_table_seg, paste0(path.expand(path), ".seg"), sep = "\t",
+                quote = FALSE, row.names = FALSE)
 
-  if (!is.null(sample_score)){
-    idx_names <- c("chr", "start", "end", "nsites")
-    out_table_sample <-
-      cbind(dmr_table[idx_dmr, idx_names], sample_score$z_scores[idx_dmr,]) %>%
-      tidyr::gather(ID, z_score, -c(chr:nsites)) %>%
-      dplyr::select(ID, chr:nsites, z_score)
-    write.table(out_table_sample, paste0(path.expand(path), "_z_scores.seg"),
-      sep = "\t", quote = FALSE, row.names = FALSE)
-  }
+    if (!is.null(sample_score)){
+        idx_names <- c("chr", "start", "end", "nsites")
+        out_table_sample <-
+            cbind(dmr_table[idx_dmr, idx_names], sample_score$z_scores[idx_dmr,]) %>%
+            tidyr::gather(ID, z_score, -c(chr:nsites)) %>%
+            dplyr::select(ID, chr:nsites, z_score)
+        write.table(out_table_sample, paste0(path.expand(path), "_z_scores.seg"),
+                    sep = "\t", quote = FALSE, row.names = FALSE)
+    }
 }

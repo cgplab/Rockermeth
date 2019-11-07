@@ -16,47 +16,47 @@
 #' auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
 #' @export
 compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0, simplify=TRUE) {
-  message(sprintf("[%s] # Compute AUC #", Sys.time()))
-  # check parameters
-  ncores <- as.integer(ncores)
-  na_threshold <- as.numeric(na_threshold)
-  system_cores <- parallel::detectCores()
+    message(sprintf("[%s] # Compute AUC #", Sys.time()))
+    # check parameters
+    ncores <- as.integer(ncores)
+    na_threshold <- as.numeric(na_threshold)
+    system_cores <- parallel::detectCores()
 
-  assertthat::assert_that(ncores < system_cores)
-  assertthat::assert_that(na_threshold >= 0, na_threshold < 1)
-  assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
+    assertthat::assert_that(ncores < system_cores)
+    assertthat::assert_that(na_threshold >= 0, na_threshold < 1)
+    assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
 
-  diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
-  diff_range_c <- diff(range(control_table, na.rm = TRUE))
-  assertthat::assert_that(diff_range_t > 1, diff_range_t <= 100, msg="For computation efficiency, convert tumor table to percentage values.")
-  assertthat::assert_that(diff_range_c > 1, diff_range_c <= 100, msg="For computation efficiency, convert control table to percentage values.")
+    diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
+    diff_range_c <- diff(range(control_table, na.rm = TRUE))
+    assertthat::assert_that(diff_range_t > 1, diff_range_t <= 100, msg="For computation efficiency, convert tumor table to percentage values.")
+    assertthat::assert_that(diff_range_c > 1, diff_range_c <= 100, msg="For computation efficiency, convert control table to percentage values.")
 
-  beta_table <- as.matrix(cbind(tumor_table, control_table))
-  beta_table <- round(beta_table)
-  storage.mode(beta_table) <- "integer"
+    beta_table <- as.matrix(cbind(tumor_table, control_table))
+    beta_table <- round(beta_table)
+    storage.mode(beta_table) <- "integer"
 
-  is_tumor <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
+    is_tumor <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
 
-  cl <- parallel::makeCluster(ncores)
-  if (isTRUE(simplify)){
-      # select rows by NAs
-      message(sprintf("[%s] Selecting sites with fraction of NAs \u2264 %.2f...", Sys.time(), na_threshold))
-      tumor_valid_sites <- rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor) <= na_threshold
-      control_valid_sites <- rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor) <= na_threshold
-      valid_sites <- which(tumor_valid_sites & control_valid_sites)
+    cl <- parallel::makeCluster(ncores)
+    if (isTRUE(simplify)){
+        # select rows by NAs
+        message(sprintf("[%s] Selecting sites with fraction of NAs \u2264 %.2f...", Sys.time(), na_threshold))
+        tumor_valid_sites <- rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor) <= na_threshold
+        control_valid_sites <- rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor) <= na_threshold
+        valid_sites <- which(tumor_valid_sites & control_valid_sites)
 
-      message(sprintf("[%s] Computing...", Sys.time()))
-      auc <- setNames(rep(NA_real_, nrow(beta_table)), rownames(beta_table))
-      auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
+        message(sprintf("[%s] Computing...", Sys.time()))
+        auc <- setNames(rep(NA_real_, nrow(beta_table)), rownames(beta_table))
+        auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
 
-  } else {
-      auc <- data.frame(auc = parallel::parApply(cl, beta_table, 1, single_AUC, is_tumor = is_tumor),
-                        tumor_NA_frac = rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor),
-                        control_NA_frac = rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor))
-  }
-  parallel::stopCluster(cl)
-  message(sprintf("[%s] Done",  Sys.time()))
-  return(auc)
+    } else {
+        auc <- data.frame(auc = parallel::parApply(cl, beta_table, 1, single_AUC, is_tumor = is_tumor),
+                          tumor_NA_frac = rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor),
+                          control_NA_frac = rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor))
+    }
+    parallel::stopCluster(cl)
+    message(sprintf("[%s] Done",  Sys.time()))
+    return(auc)
 }
 
 #' Compute AUC a single vector
@@ -68,14 +68,14 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
 #' @keywords internal
 #' \href{http://blog.revolutionanalytics.com/2017/03/auc-meets-u-stat.html}{http://blog.revolutionanalytics.com}
 single_AUC <- function(scores, is_tumor) {
-  assertthat::assert_that(is.integer(scores))
-  assertthat::assert_that(is.logical(is_tumor))
-  na_idx <- is.na(scores)
-  scores <- scores[!na_idx]
-  is_tumor <- is_tumor[!na_idx]
-  n1 <- sum(is_tumor)
-  n2 <- sum(!is_tumor)
-  R1 <- sum(rank(scores)[is_tumor])
-  U1 <- R1 - n1*(n1+1)/2
-  return(U1/(n1*n2))
+    assertthat::assert_that(is.integer(scores))
+    assertthat::assert_that(is.logical(is_tumor))
+    na_idx <- is.na(scores)
+    scores <- scores[!na_idx]
+    is_tumor <- is_tumor[!na_idx]
+    n1 <- sum(is_tumor)
+    n2 <- sum(!is_tumor)
+    R1 <- sum(rank(scores)[is_tumor])
+    U1 <- R1 - n1*(n1+1)/2
+    return(U1/(n1*n2))
 }
