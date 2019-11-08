@@ -48,27 +48,27 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_ta
 
     # use CpG sites located within DMRs
     sites <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
-                                    ranges = IRanges::IRanges(start = reference_table[[2]], width = 1),
+                                    ranges = IRanges::IRanges(start = reference_table[[2]],
+                                                              width = 1),
                                     idx = seq_len(nrow(reference_table)))
     dmrs <- GenomicRanges::GRanges(seqnames = dmr_table[[1]],
-                                   ranges = IRanges::IRanges(start = dmr_table[[2]], end = dmr_table[[3]]))
-    overlaps <- as.data.frame(GenomicRanges::findOverlaps(sites, dmrs))
-    dmr_idxs <- unique(overlaps$subjectHits)
+                                   ranges = IRanges::IRanges(start = dmr_table[[2]],
+                                                             end = dmr_table[[3]]))
+    overlaps <- GenomicRanges::findOverlaps(dmrs, sites)
+    dmr_idxs <- unique(S4Vectors::queryHits(overlaps))
 
     insuff_segs <- 0
     message(sprintf("[%s] Computing DMR median beta", Sys.time()))
     pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3, width=80)
     for (i in seq_along(dmr_idxs)) {
         idx <- dmr_idxs[i]
-        if (sum(overlaps$subjectHits == idx) >= min_size) {
-            idx_dmr <- overlaps$queryHits[overlaps$subjectHits == idx]
-            tumor_dmr_beta[idx,] <-
-                apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
-            control_dmr_beta[idx,] <-
-                apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+        if (sum(S4Vectors::queryHits(overlaps) == idx) >= min_size) {
+            idx_dmr <- S4Vectors::subjectHits(overlaps)[S4Vectors::queryHits(overlaps) == idx]
+            tumor_dmr_beta[idx,] <- apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+            control_dmr_beta[idx,] <- apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
+
             ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is
-            na_frac[idx,] <-
-                apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
+            na_frac[idx,] <- apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
         } else {
             insuff_segs <- insuff_segs + 1
         }
