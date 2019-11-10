@@ -10,8 +10,9 @@
 #' (chromosome, start, end) (likely produced by [find_dmrs]).
 #' @param reference_table A data.frame reporting the genomic coordinates of
 #' each CpG site in tumor and control matrices.
-#' @param min_size Minimum number of CpG sites inside DMR to compute Z-score
-#' (default = 3, return NA if lower).
+#' @param min_size Minimum number of CpG sites within a DMR required to compute a Z-score
+#' else return NA (default = 3).
+#' @param ncores Number of parallel processes to use for parallel computing.
 #' @return A list of 4 tables: z-scores of DMRs, median beta of DMRs in
 #' tumor samples, median beta of DMRs in normal/control samples and fraction of
 #' NA CpG sites within DMRs.
@@ -19,14 +20,16 @@
 #' @importFrom stats mad median
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
-compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_table, min_size=3) {
+compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_table, min_size=3, ncores=1) {
 
+    system_cores <- parallel::detectCores()
     # check parameters
+    assertthat::assert_that(ncores < system_cores)
     assertthat::assert_that(is.data.frame(reference_table))
+    assertthat::assert_that(is.data.frame(dmr_table))
     assertthat::assert_that(length(reference_table) >= 2)
     assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
     assertthat::assert_that(nrow(tumor_table) == nrow(reference_table))
-    assertthat::assert_that(is.data.frame(dmr_table))
     assertthat::assert_that(length(dmr_table) >= 3)
 
     # check chromosome names
@@ -39,62 +42,65 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_ta
     beta_table <- round(beta_table)
     storage.mode(beta_table) <- "integer"
 
-    # compute z-scores
     sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
+
     tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
     control_dmr_beta <- matrix(NA, nrow(dmr_table), ncol(control_table))
     z_scores         <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
-    na_frac          <- matrix(NA, nrow(dmr_table), ncol(tumor_table)) # NA fraction matrix as a quality feedback
-
-    # use CpG sites located within DMRs
-    sites <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
-                                    ranges = IRanges::IRanges(start = reference_table[[2]],
-                                                              width = 1),
-                                    idx = seq_len(nrow(reference_table)))
-    dmrs <- GenomicRanges::GRanges(seqnames = dmr_table[[1]],
-                                   ranges = IRanges::IRanges(start = dmr_table[[2]],
-                                                             end = dmr_table[[3]]))
-    overlaps <- GenomicRanges::findOverlaps(dmrs, sites)
-    dmr_idxs <- unique(S4Vectors::queryHits(overlaps))
-
-    insuff_segs <- 0
-    message(sprintf("[%s] Computing DMR median beta", Sys.time()))
-    pb <- txtProgressBar(min = 0, max = length(dmr_idxs), style = 3, width=80)
-    for (i in seq_along(dmr_idxs)) {
-        idx <- dmr_idxs[i]
-        if (sum(S4Vectors::queryHits(overlaps) == idx) >= min_size) {
-            idx_dmr <- S4Vectors::subjectHits(overlaps)[S4Vectors::queryHits(overlaps) == idx]
-            tumor_dmr_beta[idx,] <- apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, median, na.rm = TRUE)
-            control_dmr_beta[idx,] <- apply(beta_table[idx_dmr, !sample_state, drop = FALSE], 2, median, na.rm = TRUE)
-
-            ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is
-            na_frac[idx,] <- apply(beta_table[idx_dmr, sample_state, drop = FALSE], 2, function(x) sum(is.na(x))/length(x))
-        } else {
-            insuff_segs <- insuff_segs + 1
-        }
-        if (i %% 100 == 0){
-            setTxtProgressBar(pb, i)
-        }
-    }
-    setTxtProgressBar(pb, i)
-    close(pb)
-
-    dmr_without_signal <- nrow(dmr_table) - length(dmr_idxs)
-    message(sprintf("DMRs with no probes: %i", dmr_without_signal))
-    message(sprintf("DMRs with not enough probes: %i ", insuff_segs))
-    message(sprintf("[%s] Computing z-scores", Sys.time()))
-
-    control_median <- apply(control_dmr_beta, 1, median, na.rm=TRUE)
-    control_median_abs_dev <- apply(control_dmr_beta, 1, mad, na.rm=TRUE)
-    control_median_abs_dev[dplyr::between(control_median_abs_dev, 0, 1)] <- 1
-    z_scores <- (tumor_dmr_beta - control_median) / control_median_abs_dev
+    na_frac          <- matrix(NA, nrow(dmr_table), ncol(beta_table)) # NA fraction matrix as a quality feedback
 
     rnames <- sprintf("chr%s:%s-%s", dmr_table[[1]], dmr_table[[2]], dmr_table[[3]])
+    dimnames(tumor_dmr_beta)   <- list(rnames, colnames(tumor_table))
+    dimnames(control_dmr_beta) <- list(rnames, colnames(control_table))
+    dimnames(z_scores)         <- list(rnames, colnames(tumor_table))
+    dimnames(na_frac)          <- list(rnames, colnames(beta_table))
 
-    dimnames(tumor_dmr_beta)   <- list(rnames, colnames(beta_table)[sample_state])
-    dimnames(control_dmr_beta) <- list(rnames, colnames(beta_table)[!sample_state])
-    dimnames(z_scores)         <- list(rnames, colnames(beta_table)[sample_state])
-    dimnames(na_frac)          <- list(rnames, colnames(beta_table)[sample_state])
+    # find CpG sites located within DMRs
+    dmrs_ranges <- GenomicRanges::GRanges(seqnames = dmr_table[[1]],
+                                          ranges = IRanges::IRanges(start = dmr_table[[2]],
+                                                                    end = dmr_table[[3]]))
+    sites_ranges <- GenomicRanges::GRanges(seqnames = reference_table[[1]],
+                                           ranges = IRanges::IRanges(start = reference_table[[2]],
+                                                                     width = 1))
+
+    overlaps <- GenomicRanges::findOverlaps(dmrs_ranges, sites_ranges)
+
+    # split sites indexes by DMRs
+    sites_idx_list <- split(S4Vectors::subjectHits(overlaps),
+                            S4Vectors::queryHits(overlaps))
+    dmrs_nsites <- sapply(sites_idx_list, length)
+    message(sprintf("[%s] Computing DMR median beta", Sys.time()))
+
+    valid_dmrs <- which(dmrs_nsites >= min_size)
+    dmrs_info <- parallel::mclapply(mc.cores = ncores, sites_idx_list[valid_dmrs], function(idx) {
+        ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is
+        y <- apply(beta_table[idx,, drop = FALSE], 2, function(x) {
+                dmr_beta <- median(x, na.rm = TRUE)
+                na_frac <- sum(is.na(x))/length(x)
+                return(cbind(dmr_beta, na_frac))
+        })
+
+    })
+    dmrs_idx <- as.integer(names(dmrs_nsites[valid_dmrs]))
+    tumor_dmr_beta[dmrs_idx,]     <- t(sapply(dmrs_info, function(x) x[1, sample_state]))
+    control_dmr_beta[dmrs_idx,]   <- t(sapply(dmrs_info, function(x) x[1, !sample_state]))
+    na_frac[dmrs_idx,]            <- t(sapply(dmrs_info, function(x) x[2,]))
+
+    message(sprintf("[%s] Computing z-scores", Sys.time()))
+
+    cl <- parallel::makeCluster(ncores)
+    control_params <- t(parallel::parApply(cl, control_dmr_beta, 1, function(x) {
+        y <- c(median=median(x, na.rm=TRUE), MAD=mad(x, na.rm=TRUE))
+        y[2] <- dplyr::if_else(dplyr::between(y[2], 0, 1), 1, y[2]) # set low MAD to 1
+        return(y)
+    }))
+    parallel::stopCluster(cl)
+    z_scores <- sweep(tumor_dmr_beta, 1, control_params[,1])
+    z_scores <- sweep(z_scores, 1, control_params[,2], "/")
+    message(sprintf("[%s] DMRs with insufficient number of sites: %i/%i",
+                    Sys.time(),
+                    sum(dmrs_nsites < min_size),
+                    nrow(dmr_table)))
 
     return(list(z_scores = z_scores,
                 tumor_dmr_beta = tumor_dmr_beta,
