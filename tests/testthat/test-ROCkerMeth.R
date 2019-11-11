@@ -76,12 +76,11 @@ test_that("find_dmrs works", {
                      c("chr", "start", "end", "nsites", "state", "avg_beta_diff", "p_value", "q_value"))
 })
 
-context("ouput") ##############################################################
+context("output") ##############################################################
 test_that("compute_z_scores and write_output works", {
     dmr_table <- find_dmrs(tumor_toy_table, control_toy_table,
                            auc_toy_vector, reference_toy_table)
-    sample_score <- compute_z_scores(tumor_toy_table, control_toy_table,
-                                     dmr_table, reference_toy_table, 1)
+    sample_score <- compute_z_scores(tumor_toy_table, control_toy_table, dmr_table, reference_toy_table, 1, 2)
     expect_is(sample_score, "list")
     expect_length(sample_score, 4)
     write_output("test", dmr_table, sample_score, 0.8)

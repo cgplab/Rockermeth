@@ -50,7 +50,9 @@ compute_AUC <- function(tumor_table, control_table, ncores = 1, na_threshold = 0
         auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor = is_tumor)
 
     } else {
-        auc <- data.frame(auc = parallel::parApply(cl, beta_table, 1, single_AUC, is_tumor = is_tumor),
+        message(sprintf("[%s] Computing...", Sys.time()))
+        auc_scores <- parallel::parApply(cl, beta_table, 1, single_AUC, is_tumor = is_tumor)
+        auc <- data.frame(auc = auc_scores,
                           tumor_NA_frac = rowSums(is.na(beta_table[,is_tumor]))/sum(is_tumor),
                           control_NA_frac = rowSums(is.na(beta_table[,!is_tumor]))/sum(!is_tumor))
     }

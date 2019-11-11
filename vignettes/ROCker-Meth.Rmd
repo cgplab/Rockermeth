@@ -174,7 +174,7 @@ Finally, the table of DMRs and sample scores can be written in a bed or a seg
 file to be viewed with genomic browser, such as IGV.
 
 ```{r message=FALSE, warning=FALSE, eval=FALSE}
-write_output(path = "~/PRAD.subset", dmr_table = dmr_table, sample_score = PRAD_sample_score)
+write_output(path = "~/PRAD.subset", dmr_table = dmr_table, z_score_table = PRAD_sample_score)
 ```
 
 ## Rocker-meth with different parameter settings
