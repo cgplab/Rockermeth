@@ -28,16 +28,21 @@ compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, simp
         min_samples_frac <- 1-na_threshold
     }
 
-    ncores <- min(max(as.integer(ncores), 1), parallel::detectCores())
-    assertthat::assert_that(is.numeric(min_samples_frac))
-    assertthat::assert_that(is.logical(simplify))
-    assertthat::assert_that(dplyr::between(min_samples_frac, 0, 1))
-    assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
-
     diff_range_t <- diff(range(tumor_table, na.rm = TRUE))
     diff_range_c <- diff(range(control_table, na.rm = TRUE))
     assertthat::assert_that(diff_range_t > 1, diff_range_t <= 100, msg="For computation efficiency, convert tumor table to percentage values.")
     assertthat::assert_that(diff_range_c > 1, diff_range_c <= 100, msg="For computation efficiency, convert control table to percentage values.")
+    assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
+    if (!is.null(rownames(tumor_table)) & !is.null(rownames(control_table))){
+        if (any(rownames(tumor_table) != rownames(control_table))){
+            warning("tumor_table and control_table have different rownames")
+        }
+    }
+
+    assertthat::assert_that(is.numeric(ncores))
+    ncores <- min(max(ncores, 1), parallel::detectCores())
+    assertthat::assert_that(is.numeric(min_samples_frac), dplyr::between(min_samples_frac, 0, 1))
+    assertthat::assert_that(is.logical(simplify))
 
     beta_table <- as.matrix(cbind(tumor_table, control_table))
     beta_table <- round(beta_table)
@@ -48,14 +53,14 @@ compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, simp
     cl <- parallel::makeCluster(ncores)
     if (isTRUE(simplify)){
         # select rows by NAs
-        message(sprintf("[%s] Selecting sites with fraction of valid beta-scores greater than or equal to %.2f...", Sys.time(), min_samples_frac))
-        tumor_valid_sites <- which(rowSums(!is.na(beta_table[,is_tumor]))/sum(is_tumor) >= min_samples_frac)
-        control_valid_sites <- which(rowSums(!is.na(beta_table[,!is_tumor]))/sum(!is_tumor) >= min_samples_frac)
-        valid_sites <- intersect(tumor_valid_sites, control_valid_sites)
+        message(sprintf("[%s] Filter sites with fraction of available beta-scores greater than or equal to %.2f...", Sys.time(), min_samples_frac))
+        tumor_available_sites <- which(rowSums(!is.na(beta_table[,is_tumor]))/sum(is_tumor) >= min_samples_frac)
+        control_available_sites <- which(rowSums(!is.na(beta_table[,!is_tumor]))/sum(!is_tumor) >= min_samples_frac)
+        available_sites <- intersect(tumor_available_sites, control_available_sites)
 
         message(sprintf("[%s] Computing...", Sys.time()))
         auc <- setNames(rep(NA_real_, nrow(beta_table)), rownames(beta_table))
-        auc[valid_sites] <- parallel::parApply(cl, beta_table[valid_sites,,drop=FALSE], 1, single_AUC, is_tumor=is_tumor)
+        auc[available_sites] <- parallel::parApply(cl, beta_table[available_sites,,drop=FALSE], 1, single_AUC, is_tumor=is_tumor)
 
     } else {
         message(sprintf("[%s] Computing...", Sys.time()))
