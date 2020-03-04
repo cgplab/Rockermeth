@@ -5,7 +5,7 @@
 \title{Compute a Z-like score to estimate quality of DMRs}
 \usage{
 compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
-  min_size = 3, ncores = 1)
+  min_sites = 3, ncores = 1)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (fraction) from tumor samples.}
@@ -18,7 +18,7 @@ compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
 \item{reference_table}{A data.frame reporting the genomic coordinates of
 each CpG site in tumor and control matrices.}
 
-\item{min_size}{Minimum number of CpG sites within a DMR required to compute a Z-score
+\item{min_sites}{Minimum required number of CpG sites within a DMR required to compute a Z-score
 else return NA (default = 3).}
 
 \item{ncores}{Number of parallel processes to use for parallel computing.}

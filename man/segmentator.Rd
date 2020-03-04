@@ -18,7 +18,7 @@ segmentator(tumor_beta_mean, control_beta_mean, meth_states, coordinates,
 
 \item{max_dist}{Maximum distance between two contiguous sites in a DMR.}
 
-\item{min_sites}{Minimum of number of sites to consider a DMR valid.}
+\item{min_sites}{Minimum required number of CpG sites to call a DMR.}
 }
 \value{
 A data.frame with information about DMRs

@@ -9,7 +9,7 @@
 #' @param meth_states A vector of methylation states (1, 2, 3, NA).
 #' @param coordinates Ordered genomic positions of methylation sites
 #' @param max_dist Maximum distance between two contiguous sites in a DMR.
-#' @param min_sites Minimum of number of sites to consider a DMR valid.
+#' @param min_sites Minimum required number of CpG sites to call a DMR.
 #'
 #' @return A data.frame with information about DMRs
 #' @export

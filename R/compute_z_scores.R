@@ -10,7 +10,7 @@
 #' (chromosome, start, end) (likely produced by [find_dmrs]).
 #' @param reference_table A data.frame reporting the genomic coordinates of
 #' each CpG site in tumor and control matrices.
-#' @param min_size Minimum number of CpG sites within a DMR required to compute a Z-score
+#' @param min_sites Minimum required number of CpG sites within a DMR required to compute a Z-score
 #' else return NA (default = 3).
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @return A list of 4 tables: z-scores of DMRs, median beta of DMRs in
@@ -20,21 +20,18 @@
 #' @importFrom stats mad median
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
-compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_table, min_size=3, ncores=1) {
+compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_table, min_sites=3, ncores=1) {
 
-    system_cores <- parallel::detectCores()
     # check parameters
+    system_cores <- parallel::detectCores()
     assertthat::assert_that(ncores < system_cores)
     assertthat::assert_that(is.data.frame(reference_table))
-    assertthat::assert_that(is.data.frame(dmr_table))
     assertthat::assert_that(length(reference_table) >= 2)
     assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
     assertthat::assert_that(nrow(tumor_table) == nrow(reference_table))
-    assertthat::assert_that(length(dmr_table) >= 3)
-
     # check chromosome names
     assertthat::assert_that(length(intersect(reference_table[[1]], dmr_table[[1]])) > 0,
-                            msg="No shared chromosomes between 'reference_table' and 'dmr_table.' Check chromosome names.")
+                            msg="No shared chromosomes between 'reference_table' and 'dmr_table.' Check chromosome's names.")
 
     beta_table <- as.matrix(cbind(tumor_table, control_table))
     diff_range <- diff(range(beta_table, na.rm = TRUE))
@@ -71,7 +68,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_ta
     dmrs_nsites <- sapply(sites_idx_list, length)
     message(sprintf("[%s] Computing DMR median beta", Sys.time()))
 
-    valid_dmrs <- which(dmrs_nsites >= min_size)
+    valid_dmrs <- which(dmrs_nsites >= min_sites)
     dmrs_info <- parallel::mclapply(mc.cores = ncores, sites_idx_list[valid_dmrs], function(idx) {
         ## Compute percentage of NA values for each DMR, to get a feedback on how reliable the result is
         y <- apply(beta_table[idx,, drop = FALSE], 2, function(x) {
@@ -99,7 +96,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table, reference_ta
     z_scores <- sweep(z_scores, 1, control_params[,2], "/")
     message(sprintf("[%s] DMRs with insufficient number of sites: %i/%i",
                     Sys.time(),
-                    sum(dmrs_nsites < min_size),
+                    sum(dmrs_nsites < min_sites),
                     nrow(dmr_table)))
 
     return(list(z_scores = z_scores,
