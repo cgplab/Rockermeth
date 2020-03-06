@@ -28,8 +28,8 @@ write_dmr <- function(dmr_table, path, qvalue_thr = 0.05){
     assertthat::assert_that(qvalue_thr > 0)
 
     dmr_table <- dplyr::filter(dmr_table, q_value < qvalue_thr)
-    if (ncol(dmr_table) == 0){
-        warning("No DMRs with significant q-value retrieved, hence no output produced.")
+    if (nrow(dmr_table) == 0){
+        warning("No DMRs with significant q-value retrieved: no output produced.")
         return(NULL)
     }
 

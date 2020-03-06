@@ -11,7 +11,7 @@
 #' @param reference_table A data.frame reporting the genomic coordinates of
 #' each CpG site in tumor and control matrices.
 #' @param min_sites Minimum required number of CpG sites within a DMR to
-#' compute a Z-score (default = 5).
+#' compute a Z-score (used only in "custom" analysis; default = 5).
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @return A list of 4 tables: z-scores of DMRs, median beta of DMRs in
 #' tumor samples, median beta of DMRs in normal/control samples and fraction of
@@ -23,7 +23,7 @@
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
                              reference_table, method=c("default", "custom"),
                              q_value_thr = 0.05, min_sites=5, ncores=1) {
-
+    message(sprintf("[%s] Compute z-scores", Sys.time()))
     # check parameters
     system_cores <- parallel::detectCores()
     method <- match.arg(method)
@@ -42,10 +42,12 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     beta_table <- round(beta_table)
     storage.mode(beta_table) <- "integer"
 
-    message(sprintf("[%s] Compute z-scores", Sys.time()))
-
     if (method == "default"){
         dmr_table <- dplyr::filter(dmr_table, q_value < q_value_thr)
+        if (nrow(dmr_table) == 0){
+            warning("No DMRs with significant q-value retrieved: no output produced.")
+            return(NULL)
+        }
     }
 
     tumor_dmr_beta   <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
