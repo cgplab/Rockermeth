@@ -10,7 +10,7 @@
 #' (chromosome, genomic_coordinate and chromosome arm).
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @param max_distance Maximum distance between sites within same DMRs.
-#' Splits long DMRs (default to 50e6).
+#' Splits long DMRs (default: no split).
 #' @param min_sites Minimum required number of CpG sites within a DMR (default = 5).
 #' @param pt_start Transition probability of the HSLM. Default is 0.05.
 #' @param normdist Distance normalization parameter of the HSLM. Default is 1e5.
@@ -27,15 +27,14 @@
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @export
 find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
-                      ncores = 1,
-                      max_distance = 50e6, min_sites = 5, pt_start = 0.05,
-                      normdist = 1e5, ratiosd = 0.4, mu = .25, use_trunc = TRUE){
+                      ncores = 1, max_distance = Inf, min_sites = 5,
+                      pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu = .25,
+                      use_trunc = TRUE){
 
     # check parameters
     ncores <- as.integer(ncores)
     use_trunc <- as.logical(use_trunc)
     reference_table <- as.data.frame(reference_table)
-    min_sites <- as.integer(min_sites)
     tumor_table <- as.matrix(tumor_table)
     control_table <- as.matrix(control_table)
     system_cores <- parallel::detectCores()
@@ -61,8 +60,9 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     storage.mode(tumor_table) <- "integer"
     storage.mode(control_table) <- "integer"
 
+    message(sprintf("[%s] Find Differentially Methylated Regions", Sys.time()))
+
     # remove NA rows
-    message("Skipping sites with no AUC score...")
     idx_not_NA <- which(!is.na(auc_vector))
     tumor_table <- tumor_table[idx_not_NA,, drop = FALSE]
     control_table <- control_table[idx_not_NA,, drop = FALSE]
@@ -70,7 +70,6 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     reference_table <- reference_table[idx_not_NA,, drop = FALSE]
 
     # sort data
-    message("Checking order of reference table...")
     idx <- order(reference_table[[1]], reference_table[[2]])
     idx <- order(reference_table[[1]], reference_table[[2]])
     reference_table <- reference_table[idx, ]
@@ -78,7 +77,6 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     control_table <- control_table[idx, ]
     auc_vector <- auc_vector[idx]
 
-    message("Computing mean beta per site...")
     cl <- parallel::makeCluster(ncores)
     tumor_beta_mean   <- parallel::parApply(cl, tumor_table, 1, mean, na.rm = TRUE)
     control_beta_mean <- parallel::parApply(cl, control_table, 1, mean, na.rm = TRUE)
@@ -93,7 +91,7 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
         chr <- chromosomes_df[[1]][i]
         arm <- chromosomes_df[[2]][i]
         idx_chr <- which(reference_table[[1]] == chr & reference_table[[3]] == arm)
-        message("Processing chromosome ", chr, ".", arm)
+        message("## Process chromosome ", chr, ".", arm)
 
         t_beta_mean_subset <- tumor_beta_mean[idx_chr]
         c_beta_mean_subset <- control_beta_mean[idx_chr]
@@ -102,19 +100,24 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
         coordinates <- reference_table[[2]][idx_chr]
 
         # 1) compute methylation states (1,2,3)
-        message("Compute methylation states")
         meth_states <- meth_state_finder(auc_subset, coordinates, auc_sd, pt_start,
                                          normdist, ratiosd, mu, use_trunc)
 
         # 2) find segments
-        message("Find segments")
         dmrs <- segmentator(t_beta_mean_subset, c_beta_mean_subset,
-                            meth_states, coordinates, max_distance, min_sites)
+                            meth_states, coordinates, max_distance)
 
         all_dmrs[[i]] <- tibble::add_column(dmrs, chr=chr, .before="start")
     }
     all_dmrs <- dplyr::bind_rows(all_dmrs)
-    all_dmrs$q_value <- p.adjust(all_dmrs$p_value, "fdr")
+
+    message("# Correct p-values for multiple testing")
+    dmrs_idx <- with(all_dmrs, which(nsites >= min_sites & state != 2))
+    all_dmrs <- tibble::add_column(all_dmrs, q_value = NA)
+    all_dmrs$q_value[dmrs_idx] <- p.adjust(all_dmrs$p_value[dmrs_idx], "fdr")
+
+    message("  Total DMRs: ", sum(all_dmrs$state != 2))
+    message("  Valid DMRs: ", length(dmrs_idx))
+    message(sprintf("[%s] Done", Sys.time()))
     return(all_dmrs)
 }
-

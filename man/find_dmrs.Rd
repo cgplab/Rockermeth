@@ -5,9 +5,8 @@
 \title{Find Differentially Methylated Regions across whole genome}
 \usage{
 find_dmrs(tumor_table, control_table, auc_vector, reference_table,
-  ncores = 1, max_distance = 50000000, min_sites = 5,
-  pt_start = 0.05, normdist = 100000, ratiosd = 0.4, mu = 0.25,
-  use_trunc = TRUE)
+  ncores = 1, max_distance = Inf, min_sites = 5, pt_start = 0.05,
+  normdist = 100000, ratiosd = 0.4, mu = 0.25, use_trunc = TRUE)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}
@@ -23,7 +22,7 @@ normal/control samples.}
 \item{ncores}{Number of parallel processes to use for parallel computing.}
 
 \item{max_distance}{Maximum distance between sites within same DMRs.
-Splits long DMRs (default to 50e6).}
+Splits long DMRs (default: no split).}
 
 \item{min_sites}{Minimum required number of CpG sites within a DMR (default = 5).}
 
