@@ -19,7 +19,13 @@
 #' @param qvalue_thr A numerical threshold. Report only DMRs with a q-value
 #' lower than threshold.
 #' @return Nothing. Only saves output tables.
-#'
+#' @examples
+#' \dontrun{
+#' auc <- compute_AUC(tumor_example, control_example)
+#' dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
+#' compute_z_scores(tumor_example, control_example, dmr_set,reference_example)
+#' write_dmr(dmr_set, "dmr_set")
+#' }
 #' @importFrom utils write.table
 #' @export
 write_dmr <- function(dmr_table, path, qvalue_thr = 0.05){

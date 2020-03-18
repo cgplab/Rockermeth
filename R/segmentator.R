@@ -57,14 +57,16 @@ segmentator <- function(tumor_beta_mean, control_beta_mean, meth_states, coordin
                              state = prev_state)
     dmrs <- rbind(dmrs, new_dmr)
 
-    values <- matrix(NA, nrow = nrow(dmrs), ncol = 2,
-                     dimnames = list(NULL, c("mean_beta_diff", "p_value")))
+    values <- matrix(NA, nrow = nrow(dmrs), ncol = 4,
+                     dimnames = list(NULL, c("mean_beta_diff", "mean_beta_tumor", "mean_beta_control", "p_value")))
     dmrs_idx <- with(dmrs, which(state != 2))
     start_idx <- c(1, cumsum(dmrs$nsites)[-nrow(dmrs)]+1)
     end_idx   <- cumsum(dmrs$nsites)
     message("## Compute p-values")
     for (i in seq_len(nrow(dmrs))) {
         values[i, "mean_beta_diff"] <- with(dmrs, mean(beta_diff[start_idx[i]:end_idx[i]], na.rm = TRUE)) # mean beta difference
+        values[i, "mean_beta_tumor"] <- with(dmrs, mean(tumor_beta_mean[start_idx[i]:end_idx[i]], na.rm = TRUE)) # mean beta difference
+        values[i, "mean_beta_control"] <- with(dmrs, mean(control_beta_mean[start_idx[i]:end_idx[i]], na.rm = TRUE)) # mean beta difference
         if (dmrs$state[i] != 2){
             hypothesis <- ifelse(dmrs$state[i] == 1, "less", "greater")
             values[i, "p_value"] <- suppressWarnings(tryCatch(error = function(e) return(NA), # p-value

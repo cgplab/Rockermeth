@@ -25,11 +25,15 @@
 #' methylation state, average beta difference (tumor vs. control), p-value and
 #' adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
 #' @importFrom stats mad median p.adjust sd wilcox.test
+#' @examples
+#' auc <- compute_AUC(tumor_example, control_example)
+#' dmr_set <- find_dmrs(tumor_example, control_example, auc, ref_table, min_sites = 10)
 #' @export
 find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
                       ncores = 1, max_distance = Inf, min_sites = 5,
                       pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu = .25,
                       use_trunc = TRUE){
+    message(sprintf("[%s] Find Differentially Methylated Regions", Sys.time()))
 
     # check parameters
     ncores <- as.integer(ncores)
@@ -60,8 +64,6 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     storage.mode(tumor_table) <- "integer"
     storage.mode(control_table) <- "integer"
 
-    message(sprintf("[%s] Find Differentially Methylated Regions", Sys.time()))
-
     # remove NA rows
     idx_not_NA <- which(!is.na(auc_vector))
     tumor_table <- tumor_table[idx_not_NA,, drop = FALSE]
@@ -70,7 +72,6 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     reference_table <- reference_table[idx_not_NA,, drop = FALSE]
 
     # sort data
-    idx <- order(reference_table[[1]], reference_table[[2]])
     idx <- order(reference_table[[1]], reference_table[[2]])
     reference_table <- reference_table[idx, ]
     tumor_table <- tumor_table[idx, ]

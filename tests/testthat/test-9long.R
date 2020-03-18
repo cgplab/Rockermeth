@@ -9,7 +9,7 @@ test_that("TCGA-ESCA works", {
 
     dmr_table <- suppressMessages(find_dmrs(x, y, auc, illumina450k_hg19))
     sample_score <- suppressMessages(compute_z_scores(x, y, dmr_table, illumina450k_hg19))
-    write_dmr_output(dmr_table, path="/projects/packages/ROCkerMeth/esca")
+    write_dmr(dmr_table, path="/projects/packages/ROCkerMeth/esca")
     write_z_scores(sample_score, path="/projects/packages/ROCkerMeth/esca")
     expect_true(file.exists("/projects/packages/ROCkerMeth/esca.seg"))
     expect_true(file.exists("/projects/packages/ROCkerMeth/esca_z_scores.seg"))

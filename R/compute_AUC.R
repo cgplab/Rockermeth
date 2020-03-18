@@ -17,6 +17,7 @@
 #' and the fraction of non-NA samples in tumor and contol tables.
 #' @examples
 #' auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
+#' @importFrom stats setNames
 #' @export
 compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, simplify=TRUE, min_samples_frac=1) {
     message(sprintf("[%s] # Compute AUC #", Sys.time()))

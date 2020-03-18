@@ -1,5 +1,4 @@
 context("meth_state_finder") ##################################################
-
 test_that("meth_state_finder works", {
     idx_chr <- with(reference_toy_table, which(Chromosome == "1" & Chromosome_Arm == "p"))
     auc_sd <- sd(auc_toy_vector, na.rm = TRUE)

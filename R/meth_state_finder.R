@@ -21,6 +21,7 @@
 #' @param use_trunc Use truncated normal distribution (DEBUGGING
 #' ONLY).
 #' @return An integer vector of methylation states.
+#' @importFrom stats pnorm
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, pt_start,
                               normdist, ratiosd, mu, use_trunc) {

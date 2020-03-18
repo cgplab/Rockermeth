@@ -151,12 +151,12 @@ head(PRAD_dmr_table)
 You can draw a vulcano plot to identify significant DMRs (GSTP1 is highlighted)
 
 ```{r  fig.height=5, fig.width=6}
-{plot(PRAD_dmr_table$avg_beta_diff, -log10(PRAD_dmr_table$q_value), main= "Volcano Plot", log = "y", las = 1,
+{plot(PRAD_dmr_table$mean_beta_diff, -log10(PRAD_dmr_table$q_value), main= "Volcano Plot", log = "y", las = 1,
       frame.plot = FALSE, pch = 16, col = "grey",
       ylab = "-log10(FDR)", xlab = "Avg Beta difference (TP vs NT)", cex = .7)
 gstp1 <- which(PRAD_dmr_table$chr == "11" & PRAD_dmr_table$start < 67351000 & PRAD_dmr_table$end > 67351000)
-points(PRAD_dmr_table$avg_beta_diff[gstp1], -log10(PRAD_dmr_table$q_value)[gstp1], pch = 16, cex = 1, col = "black")
-text(PRAD_dmr_table$avg_beta_diff[gstp1], -log10(PRAD_dmr_table$q_value)[gstp1], "GSTP1", pos = 2)
+points(PRAD_dmr_table$mean_beta_diff[gstp1], -log10(PRAD_dmr_table$q_value)[gstp1], pch = 16, cex = 1, col = "black")
+text(PRAD_dmr_table$mean_beta_diff[gstp1], -log10(PRAD_dmr_table$q_value)[gstp1], "GSTP1", pos = 2)
 abline(h = -log10(0.05), lty = 2)}
 ```
 

@@ -1,6 +1,6 @@
 #' Compute a Z-like score to estimate quality of DMRs
 #'
-#' Assayed CpG may differ from the sites used in auc computation and
+#' Assayed CpG may differ from the sites used in AUC computation and
 #' segmentation. However, using the same assay for 'Normal' and 'Tumor' is
 #' strongly recommended.
 #'
@@ -10,20 +10,29 @@
 #' (chromosome, start, end) (likely produced by [find_dmrs]).
 #' @param reference_table A data.frame reporting the genomic coordinates of
 #' each CpG site in tumor and control matrices.
+#' @param method "default" reports only statistically significant DMRs: used
+#' for a DMR set generated with [find_dmrs]; "custom" compute Z-scores of regions
+#' covered by a minimum number of CpG sites: used to compare regions obtained with
+#' different tools
+#' @param q_value_thr Minimum q-value of a DMR to
+#' compute a Z-score (used only in "default" analysis; default = 0.05).
 #' @param min_sites Minimum required number of CpG sites within a DMR to
 #' compute a Z-score (used only in "custom" analysis; default = 5).
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @return A list of 4 tables: z-scores of DMRs, median beta of DMRs in
 #' tumor samples, median beta of DMRs in normal/control samples and fraction of
 #' NA CpG sites within DMRs.
-#'
+#' @examples
+#' auc <- compute_AUC(tumor_example, control_example)
+#' dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
+#' compute_z_scores(tumor_example, control_example, dmr_set, reference_example)
 #' @importFrom stats mad median
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @export
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
                              reference_table, method=c("default", "custom"),
                              q_value_thr = 0.05, min_sites=5, ncores=1) {
-    message(sprintf("[%s] Compute z-scores", Sys.time()))
+    message(sprintf("[%s] Z-scores analysis", Sys.time()))
     # check parameters
     system_cores <- parallel::detectCores()
     method <- match.arg(method)
@@ -37,8 +46,6 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
                             msg="No shared chromosomes between 'reference_table' and 'dmr_table.' Check chromosome's names.")
 
     beta_table <- as.matrix(cbind(tumor_table, control_table))
-    diff_range <- diff(range(beta_table, na.rm = TRUE))
-    assertthat::assert_that(diff_range > 1, diff_range <= 100, msg = "For computation efficiency, convert tumor table to percentage values.")
     beta_table <- round(beta_table)
     storage.mode(beta_table) <- "integer"
 
@@ -55,13 +62,14 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     z_scores         <- matrix(NA, nrow(dmr_table), ncol(tumor_table))
     na_frac          <- matrix(NA, nrow(dmr_table), ncol(beta_table)) # NA fraction matrix as a quality feedback
 
-    rnames <- sprintf("chr%s:%s-%s", dmr_table[[1]], dmr_table[[2]], dmr_table[[3]])
+    rnames <- sprintf("%s:%i-%i", dmr_table[[1]], dmr_table[[2]], dmr_table[[3]])
     dimnames(tumor_dmr_beta)   <- list(rnames, colnames(tumor_table))
     dimnames(control_dmr_beta) <- list(rnames, colnames(control_table))
     dimnames(z_scores)         <- list(rnames, colnames(tumor_table))
     dimnames(na_frac)          <- list(rnames, colnames(beta_table))
 
     # find CpG sites located within DMRs
+    message(sprintf("[%s] Find overlaps", Sys.time()))
     dmrs_ranges <- GenomicRanges::GRanges(seqnames = dmr_table[[1]],
                                           ranges = IRanges::IRanges(start = dmr_table[[2]],
                                                                     end = dmr_table[[3]]))
@@ -79,6 +87,7 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
         valid_dmrs <- seq_along(sites_idx_list)
     }
 
+    message(sprintf("[%s] Compute statistics", Sys.time()))
     ## Compute median beta and percentage of NA values per DMR per sample
     dmrs_info <- parallel::mclapply(mc.cores = ncores, sites_idx_list[valid_dmrs], function(idx) {
         y <- apply(beta_table[idx,, drop = FALSE], 2, function(x) {
