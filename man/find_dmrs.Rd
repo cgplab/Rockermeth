@@ -48,3 +48,7 @@ adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
 \description{
 A function to define DMR for an entire genome.
 }
+\examples{
+auc <- compute_AUC(tumor_example, control_example)
+dmr_set <- find_dmrs(tumor_example, control_example, auc, ref_table, min_sites = 10)
+}

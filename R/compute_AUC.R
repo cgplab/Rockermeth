@@ -9,7 +9,7 @@
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @param min_samples_frac Fraction of samples (independently in tumor and
 #' control samples) that are not NA required to analyze a site (default=100).
-#' @param simplify If TRUE (default) return a vector else compute all AUC and return a data.frame
+#' @param return_info If TRUE (default) return a vector else compute all AUC and return a data.frame
 #' reporting fraction of NAs in tumor and control tables.
 #' @param na_threshold (DEPRECATED) Fraction of NAs (considered independently in tumor and
 #' control samples) above which a site will not be selected (default=0).
@@ -19,7 +19,7 @@
 #' auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
 #' @importFrom stats setNames
 #' @export
-compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, simplify=TRUE, min_samples_frac=1) {
+compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, return_info=TRUE, min_samples_frac=1) {
     message(sprintf("[%s] # Compute AUC #", Sys.time()))
     # check parameters
     if (!missing(na_threshold)){
@@ -43,7 +43,7 @@ compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, simp
     assertthat::assert_that(is.numeric(ncores))
     ncores <- min(max(ncores, 1), parallel::detectCores())
     assertthat::assert_that(is.numeric(min_samples_frac), dplyr::between(min_samples_frac, 0, 1))
-    assertthat::assert_that(is.logical(simplify))
+    assertthat::assert_that(is.logical(return_info))
 
     beta_table <- as.matrix(cbind(tumor_table, control_table))
     beta_table <- round(beta_table)
@@ -52,7 +52,7 @@ compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, simp
     is_tumor <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
 
     cl <- parallel::makeCluster(ncores)
-    if (isTRUE(simplify)){
+    if (isFALSE(return_info)){
         # select rows by NAs
         message(sprintf("[%s] Filter sites with fraction of available beta-scores greater than or equal to %.2f...", Sys.time(), min_samples_frac))
         tumor_available_sites <- which(rowSums(!is.na(beta_table[,is_tumor]))/sum(is_tumor) >= min_samples_frac)

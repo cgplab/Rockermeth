@@ -33,3 +33,11 @@ samples at each DMR.
 NOTE: BED files have 0-based coordinates while SEG files have 1-based
 coordinates.
 }
+\examples{
+\dontrun{
+auc <- compute_AUC(tumor_example, control_example)
+dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
+compute_z_scores(tumor_example, control_example, dmr_set,reference_example)
+write_dmr(dmr_set, "dmr_set")
+}
+}

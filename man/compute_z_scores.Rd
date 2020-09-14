@@ -42,3 +42,8 @@ Assayed CpG may differ from the sites used in AUC computation and
 segmentation. However, using the same assay for 'Normal' and 'Tumor' is
 strongly recommended.
 }
+\examples{
+auc <- compute_AUC(tumor_example, control_example)
+dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
+compute_z_scores(tumor_example, control_example, dmr_set, reference_example)
+}
