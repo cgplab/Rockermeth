@@ -21,7 +21,7 @@ control samples) above which a site will not be selected (default=0).}
 reporting fraction of NAs in tumor and control tables.}
 
 \item{min_samples_frac}{Fraction of samples (independently in tumor and
-control samples) that are not NA required to analyze a site (default=100).}
+control samples) that are not NA required to analyze a site (default=1).}
 }
 \value{
 A vector of AUC scores (NA if not analyzed) or a data.frame with AUC scores

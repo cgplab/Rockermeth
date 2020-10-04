@@ -35,8 +35,12 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     message(sprintf("[%s] Z-scores analysis", Sys.time()))
     # check parameters
     system_cores <- parallel::detectCores()
+    
+    if (!is.na(system_cores)){
+        assertthat::assert_that(ncores < system_cores)
+        }
+    
     method <- match.arg(method)
-    assertthat::assert_that(ncores < system_cores)
     assertthat::assert_that(is.data.frame(reference_table))
     assertthat::assert_that(length(reference_table) >= 2)
     assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
