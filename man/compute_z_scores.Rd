@@ -5,7 +5,8 @@
 \title{Compute a Z-like score to estimate quality of DMRs}
 \usage{
 compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
-  min_size = 3)
+  method = c("default", "custom"), q_value_thr = 0.05, min_sites = 5,
+  ncores = 1)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (fraction) from tumor samples.}
@@ -18,8 +19,18 @@ compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
 \item{reference_table}{A data.frame reporting the genomic coordinates of
 each CpG site in tumor and control matrices.}
 
-\item{min_size}{Minimum number of CpG sites inside DMR to compute Z-score
-(default = 3, return NA if lower).}
+\item{method}{"default" reports only statistically significant DMRs: used
+for a DMR set generated with [find_dmrs]; "custom" compute Z-scores of regions
+covered by a minimum number of CpG sites: used to compare regions obtained with
+different tools}
+
+\item{q_value_thr}{Minimum q-value of a DMR to
+compute a Z-score (used only in "default" analysis; default = 0.05).}
+
+\item{min_sites}{Minimum required number of CpG sites within a DMR to
+compute a Z-score (used only in "custom" analysis; default = 5).}
+
+\item{ncores}{Number of parallel processes to use for parallel computing.}
 }
 \value{
 A list of 4 tables: z-scores of DMRs, median beta of DMRs in
@@ -27,7 +38,12 @@ tumor samples, median beta of DMRs in normal/control samples and fraction of
 NA CpG sites within DMRs.
 }
 \description{
-Assayed CpG may differ from the sites used in auc computation and
+Assayed CpG may differ from the sites used in AUC computation and
 segmentation. However, using the same assay for 'Normal' and 'Tumor' is
 strongly recommended.
+}
+\examples{
+auc <- compute_AUC(tumor_example, control_example)
+dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
+compute_z_scores(tumor_example, control_example, dmr_set, reference_example)
 }
