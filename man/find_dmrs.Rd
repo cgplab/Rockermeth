@@ -4,9 +4,20 @@
 \alias{find_dmrs}
 \title{Find Differentially Methylated Regions across whole genome}
 \usage{
-find_dmrs(tumor_table, control_table, auc_vector, reference_table,
-  ncores = 1, max_distance = Inf, min_sites = 5, pt_start = 0.05,
-  normdist = 100000, ratiosd = 0.4, mu = 0.25, use_trunc = TRUE)
+find_dmrs(
+  tumor_table,
+  control_table,
+  auc_vector,
+  reference_table,
+  ncores = 1,
+  max_distance = Inf,
+  min_sites = 5,
+  pt_start = 0.05,
+  normdist = 100000,
+  ratiosd = 0.4,
+  mu = 0.25,
+  use_trunc = TRUE
+)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}

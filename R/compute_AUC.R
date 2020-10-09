@@ -8,7 +8,7 @@
 #' @param control_table A matrix of beta-values (percentage) from normal/control samples.
 #' @param ncores Number of parallel processes to use for parallel computing.
 #' @param min_samples_frac Fraction of samples (independently in tumor and
-#' control samples) that are not NA required to analyze a site (default=100).
+#' control samples) that are not NA required to analyze a site (range=0-1, default=1).
 #' @param return_info If TRUE (default) return a vector else compute all AUC and return a data.frame
 #' reporting fraction of NAs in tumor and control tables.
 #' @param na_threshold (DEPRECATED) Fraction of NAs (considered independently in tumor and
@@ -19,7 +19,7 @@
 #' auc_data <- compute_AUC(tumor_toy_table, control_toy_table)
 #' @importFrom stats setNames
 #' @export
-compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, return_info=TRUE, min_samples_frac=1) {
+compute_AUC <- function(tumor_table, control_table, ncores=1, na_threshold, return_info=FALSE, min_samples_frac=1) {
     message(sprintf("[%s] # Compute AUC #", Sys.time()))
     # check parameters
     if (!missing(na_threshold)){

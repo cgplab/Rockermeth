@@ -4,9 +4,16 @@
 \alias{compute_z_scores}
 \title{Compute a Z-like score to estimate quality of DMRs}
 \usage{
-compute_z_scores(tumor_table, control_table, dmr_table, reference_table,
-  method = c("default", "custom"), q_value_thr = 0.05, min_sites = 5,
-  ncores = 1)
+compute_z_scores(
+  tumor_table,
+  control_table,
+  dmr_table,
+  reference_table,
+  method = c("default", "custom"),
+  q_value_thr = 0.05,
+  min_sites = 5,
+  ncores = 1
+)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (fraction) from tumor samples.}

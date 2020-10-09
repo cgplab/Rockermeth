@@ -4,8 +4,16 @@
 \alias{meth_state_finder}
 \title{Mixture Coefficient Estimation}
 \usage{
-meth_state_finder(input_signal, input_pos, auc_sd, pt_start, normdist,
-  ratiosd, mu, use_trunc)
+meth_state_finder(
+  input_signal,
+  input_pos,
+  auc_sd,
+  pt_start,
+  normdist,
+  ratiosd,
+  mu,
+  use_trunc
+)
 }
 \arguments{
 \item{input_signal}{A numeric vector of AUC scores.}
