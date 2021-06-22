@@ -4,8 +4,13 @@
 \alias{segmentator}
 \title{Define Differentially Methylated Regions}
 \usage{
-segmentator(tumor_beta_mean, control_beta_mean, meth_states, coordinates,
-  max_dist)
+segmentator(
+  tumor_beta_mean,
+  control_beta_mean,
+  meth_states,
+  coordinates,
+  max_dist
+)
 }
 \arguments{
 \item{tumor_beta_mean}{A vector of average methylation (beta) values.}

@@ -4,8 +4,14 @@
 \alias{compute_AUC}
 \title{Compute Area Under Curve for a matrix of samples}
 \usage{
-compute_AUC(tumor_table, control_table, ncores = 1, na_threshold,
-  return_info = TRUE, min_samples_frac = 1)
+compute_AUC(
+  tumor_table,
+  control_table,
+  ncores = 1,
+  na_threshold,
+  return_info = FALSE,
+  min_samples_frac = 1
+)
 }
 \arguments{
 \item{tumor_table}{A matrix of beta-values (percentage) from tumor samples.}
@@ -21,7 +27,7 @@ control samples) above which a site will not be selected (default=0).}
 reporting fraction of NAs in tumor and control tables.}
 
 \item{min_samples_frac}{Fraction of samples (independently in tumor and
-control samples) that are not NA required to analyze a site (default=1).}
+control samples) that are not NA required to analyze a site (range=0-1, default=1).}
 }
 \value{
 A vector of AUC scores (NA if not analyzed) or a data.frame with AUC scores
