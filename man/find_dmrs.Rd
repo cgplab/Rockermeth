@@ -13,7 +13,7 @@ find_dmrs(
   max_distance = Inf,
   min_sites = 5,
   pt_start = 0.05,
-  normdist = 100000,
+  normdist = 1e+05,
   ratiosd = 0.4,
   mu = 0.25,
   use_trunc = TRUE
@@ -61,5 +61,5 @@ A function to define DMR for an entire genome.
 }
 \examples{
 auc <- compute_AUC(tumor_example, control_example)
-dmr_set <- find_dmrs(tumor_example, control_example, auc, ref_table, min_sites = 10)
+dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
 }
