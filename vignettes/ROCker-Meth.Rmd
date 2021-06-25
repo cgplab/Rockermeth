@@ -1,6 +1,6 @@
 ---
 title: "ROCker-Meth"
-author: "Matteo Benelli, Dario Romagnoli, Alberto Magi"
+author: "Matteo Benelli, Dario Romagnoli, Alberto Magi, Gian Marco Franceschini"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -45,7 +45,7 @@ devtools::install_github("cgplab/ROCkerMeth")
 Once you have installed the package, you need to load it (with other useful packages)
 
 ```{r message=FALSE, warning=FALSE}
-library(ROCkerMeth)
+library(Rockermeth)
 ```
 
 ## Prepare the data

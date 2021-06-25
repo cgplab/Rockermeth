@@ -19,9 +19,9 @@
 #' @param min_sites Minimum required number of CpG sites within a DMR to
 #' compute a Z-score (used only in "custom" analysis; default = 5).
 #' @param ncores Number of parallel processes to use for parallel computing.
-#' @return A list of 4 tables: z-scores of DMRs, median beta of DMRs in
-#' tumor samples, median beta of DMRs in normal/control samples and fraction of
-#' NA CpG sites within DMRs.
+#' @return A list of 5 tables: z-scores of DMRs, median beta of DMRs in
+#' tumor samples, median beta of DMRs in normal/control samples, fraction of
+#' NA CpG sites within DMRs and a dataframe with the comparison of beta values between groups for all segments.
 #' @examples
 #' auc <- compute_AUC(tumor_example, control_example)
 #' dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
@@ -32,11 +32,18 @@
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
                              reference_table, method=c("default", "custom"),
                              q_value_thr = 0.05, min_sites=5, ncores=1) {
+
+
     message(sprintf("[%s] Z-scores analysis", Sys.time()))
+
     # check parameters
     system_cores <- parallel::detectCores()
+
+    if (!is.na(system_cores)){
+        assertthat::assert_that(ncores < system_cores)
+        }
+
     method <- match.arg(method)
-    assertthat::assert_that(ncores < system_cores)
     assertthat::assert_that(is.data.frame(reference_table))
     assertthat::assert_that(length(reference_table) >= 2)
     assertthat::assert_that(nrow(tumor_table) == nrow(control_table))
@@ -87,16 +94,19 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
         valid_dmrs <- seq_along(sites_idx_list)
     }
 
+
     message(sprintf("[%s] Compute statistics", Sys.time()))
     ## Compute median beta and percentage of NA values per DMR per sample
-    dmrs_info <- parallel::mclapply(mc.cores = ncores, sites_idx_list[valid_dmrs], function(idx) {
-        y <- apply(beta_table[idx,, drop = FALSE], 2, function(x) {
+    dmrs_info <-
+        parallel::mclapply(mc.cores = ncores, sites_idx_list[valid_dmrs], function(idx) {
+            y <- apply(beta_table[idx, , drop = FALSE], 2, function(x) {
                 dmr_beta <- median(x, na.rm = TRUE)
-                na_frac <- sum(is.na(x))/length(x)
+                na_frac <- sum(is.na(x)) / length(x)
                 return(cbind(dmr_beta, na_frac))
+            })
+            return(y)
         })
-        return(y)
-    })
+
 
     dmrs_idx <- as.integer(names(sites_idx_list[valid_dmrs]))
     sample_state <- c(rep(TRUE, ncol(tumor_table)), rep(FALSE, ncol(control_table)))
@@ -104,13 +114,16 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     control_dmr_beta[dmrs_idx,]   <- t(sapply(dmrs_info, function(x) x[1, !sample_state]))
     na_frac[dmrs_idx,]            <- t(sapply(dmrs_info, function(x) x[2,]))
 
+
     cl <- parallel::makeCluster(ncores)
     control_samples_statistics <- t(parallel::parApply(cl, control_dmr_beta, 1, function(x) {
         y <- c(Median=median(x, na.rm=TRUE), MAD=mad(x, na.rm=TRUE))
         y[2] <- dplyr::if_else(dplyr::between(y[2], 0, 1), 1, y[2]) # set low MAD to 1
         return(y)
     }))
+
     parallel::stopCluster(cl)
+
     z_scores <- sweep(tumor_dmr_beta, 1, control_samples_statistics[,1])
     z_scores <- sweep(z_scores, 1, control_samples_statistics[,2], "/")
     if (method == "custom") {
@@ -118,9 +131,26 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
                         sum(dmrs_nsites < min_sites), nrow(dmr_table)))
     }
 
+
+    ## Compute WMW, deltaBeta and AUC on segments
+
+    df_stats = suppressWarnings(matrixTests::row_wilcoxon_twosample(tumor_dmr_beta, control_dmr_beta, correct = TRUE))
+    df_stats$p_value = df_stats$pvalue
+    df_stats$q_value = p.adjust(df_stats$pvalue, method = "fdr")
+    df_stats$reg_id = rownames(df_stats)
+    df_stats$mean_beta_diff = apply(tumor_dmr_beta, 1, mean, na.rm = T) - apply(control_dmr_beta, 1, mean, na.rm = T)
+    df_stats$auc = df_stats$statistic / (ncol(tumor_dmr_beta) * ncol(control_dmr_beta))
+
+    rownames(df_stats) = NULL
+    df_stats = df_stats[, c("reg_id", "p_value", "q_value", "mean_beta_diff", "auc")]
+
+
+
     message(sprintf("[%s] Done", Sys.time()))
     return(list(z_scores = z_scores,
                 tumor_dmr_beta = tumor_dmr_beta,
                 control_dmr_beta = control_dmr_beta,
-                NA_frac = na_frac))
+                NA_frac = na_frac,
+                seg_stats = df_stats
+                ))
 }

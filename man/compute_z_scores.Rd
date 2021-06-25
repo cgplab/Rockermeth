@@ -40,9 +40,9 @@ compute a Z-score (used only in "custom" analysis; default = 5).}
 \item{ncores}{Number of parallel processes to use for parallel computing.}
 }
 \value{
-A list of 4 tables: z-scores of DMRs, median beta of DMRs in
-tumor samples, median beta of DMRs in normal/control samples and fraction of
-NA CpG sites within DMRs.
+A list of 5 tables: z-scores of DMRs, median beta of DMRs in
+tumor samples, median beta of DMRs in normal/control samples, fraction of
+NA CpG sites within DMRs and a dataframe with the comparison of beta values between groups for all segments.
 }
 \description{
 Assayed CpG may differ from the sites used in AUC computation and
