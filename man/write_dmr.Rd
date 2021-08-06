@@ -12,7 +12,7 @@ write_dmr(dmr_table, path, qvalue_thr = 0.05)
 \item{path}{A string including absolute or relative path which prefixes are added to
 ("_hyper.bed", "_hypo.bed", ".seg")}
 
-\item{qvalue_thr}{A numerical threshold. Report only DMRs with a q-value
+\item{qvalue_thr}{A numerical threshold. Report only DMRs with a fdr
 lower than threshold.}
 }
 \value{
@@ -26,7 +26,7 @@ DMRs.
 }
 \details{
 BED files (hyper- and hypo-methylated DMRs separately) report genomic
-location and q-value (in form of -log10(q)).
+location and fdr (in form of -log10(q)).
 SEG files report average beta differences between tumor and normal/control
 samples at each DMR.
 

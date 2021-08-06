@@ -23,7 +23,7 @@
 #' Default is TRUE.
 #' @return A data.frame reporting genomic location, number of CpG sites,
 #' methylation state, average beta difference (tumor vs. control), p-value and
-#' adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
+#' adjusted (Benjamini-Hochberg) p-value (fdr) of discovered DMRs.
 #' @importFrom stats mad median p.adjust sd wilcox.test
 #' @examples
 #' auc <- compute_AUC(tumor_example, control_example)
@@ -114,8 +114,8 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
 
     message("# Correct p-values for multiple testing")
     dmrs_idx <- with(all_dmrs, which(nsites >= min_sites & state != 2))
-    all_dmrs <- tibble::add_column(all_dmrs, q_value = NA)
-    all_dmrs$q_value[dmrs_idx] <- p.adjust(all_dmrs$p_value[dmrs_idx], "fdr")
+    all_dmrs <- tibble::add_column(all_dmrs, fdr = NA)
+    all_dmrs$fdr[dmrs_idx] <- p.adjust(all_dmrs$p_value[dmrs_idx], "fdr")
 
     message("  Total DMRs: ", sum(all_dmrs$state != 2))
     message("  Valid DMRs: ", length(dmrs_idx))

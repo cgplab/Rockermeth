@@ -10,7 +10,7 @@ compute_z_scores(
   dmr_table,
   reference_table,
   method = c("default", "custom"),
-  q_value_thr = 0.05,
+  fdr_thr = 0.05,
   min_sites = 5,
   ncores = 1
 )
@@ -31,7 +31,7 @@ for a DMR set generated with [find_dmrs]; "custom" compute Z-scores of regions
 covered by a minimum number of CpG sites: used to compare regions obtained with
 different tools}
 
-\item{q_value_thr}{Minimum q-value of a DMR to
+\item{fdr_thr}{Minimum fdr of a DMR to
 compute a Z-score (used only in "default" analysis; default = 0.05).}
 
 \item{min_sites}{Minimum required number of CpG sites within a DMR to

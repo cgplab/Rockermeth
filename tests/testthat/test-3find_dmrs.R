@@ -22,7 +22,7 @@ test_that("segmentator returns correct table", {
 test_that("find_dmrs works", {
     dmr_table <- find_dmrs(tumor_toy_table, control_toy_table, auc_toy_vector, reference_toy_table)
     # head(as.data.frame(dmr_table))
-    #   chr  start    end nsites state mean_beta_diff mean_beta_tumor mean_beta_control      p_value      q_value
+    #   chr  start    end nsites state mean_beta_diff mean_beta_tumor mean_beta_control      p_value      fdr
     # 1   1  15865 763127     47     2     -0.1250561        28.09480          28.21986           NA           NA
     # 2   1 779995 876551     94     1    -14.4714773        36.97280          51.44428 0.0000664017 0.0006451733
     # 3   1 876870 901062     51     2     -0.8461393        56.63192          57.47806           NA           NA
@@ -31,5 +31,5 @@ test_that("find_dmrs works", {
     # 6   1 911995 937048     38     1    -10.6365439        21.95869          32.59524 0.0627186188 0.1217088467
     expect_is(dmr_table, "data.frame")
     expect_length(dmr_table, 10)
-    expect_identical(names(dmr_table), c("chr", "start", "end", "nsites", "state", "mean_beta_diff", "mean_beta_tumor", "mean_beta_control", "p_value", "q_value"))
+    expect_identical(names(dmr_table), c("chr", "start", "end", "nsites", "state", "mean_beta_diff", "mean_beta_tumor", "mean_beta_control", "p_value", "fdr"))
 })
