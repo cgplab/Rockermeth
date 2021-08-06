@@ -54,7 +54,7 @@ Default is TRUE.}
 \value{
 A data.frame reporting genomic location, number of CpG sites,
 methylation state, average beta difference (tumor vs. control), p-value and
-adjusted (Benjamini-Hochberg) p-value (q-value) of discovered DMRs.
+adjusted (Benjamini-Hochberg) p-value (fdr) of discovered DMRs.
 }
 \description{
 A function to define DMR for an entire genome.

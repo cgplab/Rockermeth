@@ -14,7 +14,7 @@
 #' for a DMR set generated with [find_dmrs]; "custom" compute Z-scores of regions
 #' covered by a minimum number of CpG sites: used to compare regions obtained with
 #' different tools
-#' @param q_value_thr Minimum q-value of a DMR to
+#' @param fdr_thr Minimum fdr of a DMR to
 #' compute a Z-score (used only in "default" analysis; default = 0.05).
 #' @param min_sites Minimum required number of CpG sites within a DMR to
 #' compute a Z-score (used only in "custom" analysis; default = 5).
@@ -31,7 +31,7 @@
 #' @export
 compute_z_scores <- function(tumor_table, control_table, dmr_table,
                              reference_table, method=c("default", "custom"),
-                             q_value_thr = 0.05, min_sites=5, ncores=1) {
+                             fdr_thr = 0.05, min_sites=5, ncores=1) {
 
 
     message(sprintf("[%s] Z-scores analysis", Sys.time()))
@@ -57,9 +57,9 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
     storage.mode(beta_table) <- "integer"
 
     if (method == "default"){
-        dmr_table <- dplyr::filter(dmr_table, q_value < q_value_thr)
+        dmr_table <- dplyr::filter(dmr_table, fdr < fdr_thr)
         if (nrow(dmr_table) == 0){
-            warning("No DMRs with significant q-value retrieved: no output produced.")
+            warning("No DMRs with significant fdr retrieved: no output produced.")
             return(NULL)
         }
     }
@@ -136,13 +136,13 @@ compute_z_scores <- function(tumor_table, control_table, dmr_table,
 
     df_stats = suppressWarnings(matrixTests::row_wilcoxon_twosample(tumor_dmr_beta, control_dmr_beta, correct = TRUE))
     df_stats$p_value = df_stats$pvalue
-    df_stats$q_value = p.adjust(df_stats$pvalue, method = "fdr")
+    df_stats$fdr = p.adjust(df_stats$pvalue, method = "fdr")
     df_stats$reg_id = rownames(df_stats)
     df_stats$mean_beta_diff = apply(tumor_dmr_beta, 1, mean, na.rm = T) - apply(control_dmr_beta, 1, mean, na.rm = T)
     df_stats$auc = df_stats$statistic / (ncol(tumor_dmr_beta) * ncol(control_dmr_beta))
 
     rownames(df_stats) = NULL
-    df_stats = df_stats[, c("reg_id", "p_value", "q_value", "mean_beta_diff", "auc")]
+    df_stats = df_stats[, c("reg_id", "p_value", "fdr", "mean_beta_diff", "auc")]
 
 
 
