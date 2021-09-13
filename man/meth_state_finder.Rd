@@ -2,7 +2,7 @@
 % Please edit documentation in R/meth_state_finder.R
 \name{meth_state_finder}
 \alias{meth_state_finder}
-\title{Mixture Coefficient Estimation}
+\title{Find Methylation Status}
 \usage{
 meth_state_finder(
   input_signal,
@@ -37,14 +37,9 @@ expected mean for hyper-methylated state).}
 ONLY).}
 }
 \value{
-An integer vector of methylation states.
+An integer vector of methylation states (1,2,3).
 }
 \description{
-This function classifies CpG sites into hypo-methylated, not differentially
-methylated and hyper-methylated states using a Heterogeneous Shifting Level
-Model (HSLM).
-States:
-hypo-methylated  = 1;
-non-differential = 2;
-hyper-methylated = 3.
+This function classifies CpG sites as hypo-methylated (1), non-differentially
+methylated (2) or hyper-methylated (3) using a Heterogeneous Hidden Markov Model (HMM).
 }

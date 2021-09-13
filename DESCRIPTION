@@ -1,13 +1,13 @@
 Package: Rockermeth
-Title: Receiver Operating Characteristic curve analyzer of DNA METHylation data
-Version: 0.0.45.9000
-Date: 2021-06-25
+Title: Receiver Operating Characteristic curves analyzer for DNA methylation data
+Version: 0.0.47.9000
+Date: 2021-09-13
 Authors@R: c(
     person("Dario", "Romagnoli", role = "cre", email = "dario.romagnoli87@gmail.com"),
     person("Matteo", "Benelli", role = "aut"),
-    person("Alberto", "Magi", role = "aut"),
-    person("Gian Marco", "Franceschini", role = "aut"))
-Description: A tool to discover differentially methylated regions (DMR)
+    person("Gian Marco", "Franceschini", role = "aut")),
+    person("Alberto", "Magi", role = "aut")
+Description: A tool to discover differentially methylated regions (DMR) from DNA methylation data
 Depends: R (>= 3.4.2)
 License: MIT + file LICENSE
 Encoding: UTF-8

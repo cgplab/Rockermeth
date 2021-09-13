@@ -1,12 +1,7 @@
-#' Mixture Coefficient Estimation
+#' Find Methylation Status
 #'
-#' This function classifies CpG sites into hypo-methylated, not differentially
-#' methylated and hyper-methylated states using a Heterogeneous Shifting Level
-#' Model (HSLM).
-#' States:
-#' hypo-methylated  = 1;
-#' non-differential = 2;
-#' hyper-methylated = 3.
+#' This function classifies CpG sites as hypo-methylated (1), non-differentially
+#' methylated (2) or hyper-methylated (3) using a Heterogeneous Hidden Markov Model (HMM).
 #'
 #' @param input_signal A numeric vector of AUC scores.
 #' @param input_pos An integer vector of chromosomal locations
@@ -20,7 +15,7 @@
 #' expected mean for hyper-methylated state).
 #' @param use_trunc Use truncated normal distribution (DEBUGGING
 #' ONLY).
-#' @return An integer vector of methylation states.
+#' @return An integer vector of methylation states (1,2,3).
 #' @importFrom stats pnorm
 #' @export
 meth_state_finder <- function(input_signal, input_pos, auc_sd, pt_start,

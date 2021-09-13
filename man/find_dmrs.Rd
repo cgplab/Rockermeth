@@ -13,7 +13,7 @@ find_dmrs(
   max_distance = Inf,
   min_sites = 5,
   pt_start = 0.05,
-  normdist = 1e+05,
+  normdist = 100000,
   ratiosd = 0.4,
   mu = 0.25,
   use_trunc = TRUE
