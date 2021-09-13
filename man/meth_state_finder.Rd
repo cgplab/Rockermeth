@@ -2,7 +2,7 @@
 % Please edit documentation in R/meth_state_finder.R
 \name{meth_state_finder}
 \alias{meth_state_finder}
-\title{Find Methylation Status}
+\title{Infer Differential Methylation Status}
 \usage{
 meth_state_finder(
   input_signal,

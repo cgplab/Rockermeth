@@ -1,4 +1,4 @@
-#' Find Methylation Status
+#' Infer Differential Methylation Status
 #'
 #' This function classifies CpG sites as hypo-methylated (1), non-differentially
 #' methylated (2) or hyper-methylated (3) using a Heterogeneous Hidden Markov Model (HMM).
