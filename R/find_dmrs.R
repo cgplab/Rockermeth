@@ -25,6 +25,8 @@
 #' methylation state, average beta difference (tumor vs. control), p-value and
 #' adjusted (Benjamini-Hochberg) p-value (fdr) of discovered DMRs.
 #' @importFrom stats mad median p.adjust sd wilcox.test
+#' @import doParallel
+#' @import foreach
 #' @examples
 #' auc <- compute_AUC(tumor_example, control_example)
 #' dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
@@ -32,7 +34,7 @@
 find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
                       ncores = 1, max_distance = Inf, min_sites = 5,
                       pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu = .25,
-                      use_trunc = TRUE){
+                      use_trunc = TRUE, n_clust = 1){
     message(sprintf("[%s] Find Differentially Methylated Regions", Sys.time()))
 
     # check parameters
@@ -86,9 +88,16 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     auc_sd <- sd(auc_vector, na.rm = TRUE)
 
     chromosomes_df <- unique(reference_table[c(1,3)])
-    all_dmrs <- vector("list", nrow(chromosomes_df))
+    # all_dmrs <- vector("list", nrow(chromosomes_df))
     i <- 1
-    for (i in seq_len(nrow(chromosomes_df))) {
+
+    cl <- parallel::makeCluster(n_clust)
+    doParallel::registerDoParallel(cl)
+
+    `%dopar%` = foreach::`%dopar%`
+
+    all_dmrs = foreach::foreach(i = 1:nrow(chromosomes_df), .combine = rbind, .packages = c("Rockermeth")) %dopar% {
+
         chr <- chromosomes_df[[1]][i]
         arm <- chromosomes_df[[2]][i]
         idx_chr <- which(reference_table[[1]] == chr & reference_table[[3]] == arm)
@@ -101,16 +110,19 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
         coordinates <- reference_table[[2]][idx_chr]
 
         # 1) compute methylation states (1,2,3)
-        meth_states <- meth_state_finder(auc_subset, coordinates, auc_sd, pt_start,
+        meth_states <- Rockermeth::meth_state_finder(auc_subset, coordinates, auc_sd, pt_start,
                                          normdist, ratiosd, mu, use_trunc)
 
         # 2) find segments
-        dmrs <- segmentator(t_beta_mean_subset, c_beta_mean_subset,
+        dmrs <- Rockermeth::segmentator(t_beta_mean_subset, c_beta_mean_subset,
                             meth_states, coordinates, max_distance)
 
-        all_dmrs[[i]] <- tibble::add_column(dmrs, chr=chr, .before="start")
+        dmrs <- tibble::add_column(dmrs, chr=chr, .before="start")
+        return(dmrs)
     }
-    all_dmrs <- dplyr::bind_rows(all_dmrs)
+
+    parallel::stopCluster(cl)
+
 
     message("# Correct p-values for multiple testing")
     dmrs_idx <- with(all_dmrs, which(nsites >= min_sites & state != 2))
@@ -121,4 +133,5 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     message("  Valid DMRs: ", length(dmrs_idx))
     message(sprintf("[%s] Done", Sys.time()))
     return(all_dmrs)
+
 }
