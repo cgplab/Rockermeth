@@ -25,8 +25,7 @@
 #' methylation state, average beta difference (tumor vs. control), p-value and
 #' adjusted (Benjamini-Hochberg) p-value (fdr) of discovered DMRs.
 #' @importFrom stats mad median p.adjust sd wilcox.test
-#' @import doParallel
-#' @import foreach
+#' @importFrom foreach "%dopar%"
 #' @examples
 #' auc <- compute_AUC(tumor_example, control_example)
 #' dmr_set <- find_dmrs(tumor_example, control_example, auc, reference_example, min_sites = 10)
@@ -34,7 +33,7 @@
 find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
                       ncores = 1, max_distance = Inf, min_sites = 5,
                       pt_start = 0.05, normdist = 1e5, ratiosd = 0.4, mu = .25,
-                      use_trunc = TRUE, n_clust = 1){
+                      use_trunc = TRUE){
     message(sprintf("[%s] Find Differentially Methylated Regions", Sys.time()))
 
     # check parameters
@@ -84,19 +83,16 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
     tumor_beta_mean   <- parallel::parApply(cl, tumor_table, 1, mean, na.rm = TRUE)
     control_beta_mean <- parallel::parApply(cl, control_table, 1, mean, na.rm = TRUE)
     parallel::stopCluster(cl)
+
     mean_beta_diff <- tumor_beta_mean - control_beta_mean
     auc_sd <- sd(auc_vector, na.rm = TRUE)
 
     chromosomes_df <- unique(reference_table[c(1,3)])
-    # all_dmrs <- vector("list", nrow(chromosomes_df))
-    i <- 1
 
-    cl <- parallel::makeCluster(n_clust)
+    cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
-    `%dopar%` = foreach::`%dopar%`
-
-    all_dmrs = foreach::foreach(i = 1:nrow(chromosomes_df), .combine = rbind, .packages = c("Rockermeth")) %dopar% {
+    all_dmrs <- foreach::foreach(i = seq_len(nrow(chromosomes_df)), .combine = rbind, .packages = c("Rockermeth")) %dopar% {
 
         chr <- chromosomes_df[[1]][i]
         arm <- chromosomes_df[[2]][i]
@@ -120,9 +116,7 @@ find_dmrs <- function(tumor_table, control_table, auc_vector, reference_table,
         dmrs <- tibble::add_column(dmrs, chr=chr, .before="start")
         return(dmrs)
     }
-
     parallel::stopCluster(cl)
-
 
     message("# Correct p-values for multiple testing")
     dmrs_idx <- with(all_dmrs, which(nsites >= min_sites & state != 2))

@@ -7,7 +7,7 @@ test_that("TCGA-ESCA works", {
     y <- round(readRDS(file.path(data_folder, "ESCA_DNAm_NT.rds"))*100)
     auc <- readRDS("/projects/packages/Rockermeth/data-raw/pancancer_auc.rds")[,"ESCA"]
 
-    dmr_table <- suppressMessages(find_dmrs(x, y, auc, illumina450k_hg19))
+    dmr_table <- suppressMessages(find_dmrs(x, y, auc, illumina450k_hg19, ncores=10))
     sample_score <- suppressMessages(compute_z_scores(x, y, dmr_table, illumina450k_hg19))
     write_dmr(dmr_table, path="/projects/packages/Rockermeth/esca")
     write_z_scores(sample_score, path="/projects/packages/Rockermeth/esca")
