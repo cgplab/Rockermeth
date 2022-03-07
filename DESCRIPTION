@@ -1,7 +1,7 @@
 Package: Rockermeth
 Title: Receiver Operating Characteristic curves analyzer for DNA methylation data
-Version: 0.1.0
-Date: 2022-01-11
+Version: 0.1.1
+Date: 2022-03-07
 Authors@R: c(
     person("Dario", "Romagnoli", role = "cre", email = "dario.romagnoli87@gmail.com"),
     person("Matteo", "Benelli", role = "aut"),
